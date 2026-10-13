@@ -1,0 +1,695 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>나의 ACCA 로드맵</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap">
+<style>
+/* Layout: red ground, white level panels with card grids (exam/module), progress hero on top. */
+:root{
+  --bg:#b8231b; --bg-deep:#8f1913; --on-bg:#ffffff; --on-bg-muted:#f6d3cf;
+  --surface:#ffffff; --card:#f3f1f0; --card-done:#e8f0ea; --ink:#1c1514; --muted:#6a5f5d; --line:#e5dedc;
+  --red:#c0281e; --maroon:#6e1410; --pass:#2e7d3a; --pass-soft:#e2efe4; --study:#b26a00; --study-soft:#fbeed8;
+  --gold:#f0b23e; --ring-track:rgba(255,255,255,.28);
+  --f-display:"Bricolage Grotesque","IBM Plex Sans KR",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#5e1310; --bg-deep:#440d0b; --on-bg:#fff3f1; --on-bg-muted:#e9b9b3;
+  --surface:#1f1716; --card:#2a2120; --card-done:#1d2a20; --ink:#f1e9e7; --muted:#b3a5a2; --line:#3a2e2c;
+  --red:#e2483c; --maroon:#a3281f; --pass:#6cc27a; --pass-soft:#1f3a24; --study:#f0a640; --study-soft:#3a2a12;
+  --gold:#f0b23e; --ring-track:rgba(255,255,255,.18); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#5e1310; --bg-deep:#440d0b; --on-bg:#fff3f1; --on-bg-muted:#e9b9b3;
+  --surface:#1f1716; --card:#2a2120; --card-done:#1d2a20; --ink:#f1e9e7; --muted:#b3a5a2; --line:#3a2e2c;
+  --red:#e2483c; --maroon:#a3281f; --pass:#6cc27a; --pass-soft:#1f3a24; --study:#f0a640; --study-soft:#3a2a12;
+  --gold:#f0b23e; --ring-track:rgba(255,255,255,.18); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55}
+.wrap{max-width:1040px;margin:0 auto;padding-inline:20px;padding-block:28px 64px;display:flex;flex-direction:column;gap:24px}
+h1,h2,h3{text-wrap:balance;margin:0}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:500}
+
+/* hero */
+.hero{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:20px;color:var(--on-bg)}
+.hero .eyebrow{color:var(--on-bg-muted)}
+.hero h1{font-family:var(--f-display);font-weight:800;font-size:clamp(30px,5.5vw,46px);letter-spacing:-.02em;line-height:1.1;margin-top:4px}
+.who{font-size:13.5px;color:var(--on-bg-muted);margin-top:10px;line-height:1.6}
+.who b{color:var(--on-bg);font-weight:500}
+.sync{font-size:12px;color:var(--on-bg-muted);margin-top:4px}
+.share{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.share button{font:inherit;font-size:12.5px;border:1px solid var(--on-bg-muted);background:transparent;color:var(--on-bg);padding:5px 11px;border-radius:999px;cursor:pointer}
+.share button:hover{background:var(--bg-deep)}
+.ring{position:relative;width:150px;height:150px;flex:none}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .lbl{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--on-bg)}
+.ring .n{font-family:var(--f-display);font-weight:800;font-size:44px;line-height:1;font-variant-numeric:tabular-nums}
+.ring .n small{font-size:20px;color:var(--on-bg-muted)}
+.ring .c{font-size:11px;letter-spacing:.14em;color:var(--on-bg-muted);margin-top:4px}
+
+/* progress cards */
+.progress{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.pcard{background:var(--surface);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.pcard .eyebrow{color:var(--muted)}
+.pcard .big{font-family:var(--f-display);font-weight:800;font-size:42px;line-height:1;font-variant-numeric:tabular-nums}
+.pcard .big small{font-size:19px;color:var(--muted);font-weight:600}
+.pcard .row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.bar{display:flex;height:12px;border-radius:6px;overflow:hidden;background:var(--line)}
+.bar span{display:block;height:100%;transition:width .4s ease}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--muted)}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px}
+.next{font-size:13.5px;border-top:1px dashed var(--line);padding-top:10px}
+
+/* tabs */
+.tabs{display:flex;gap:4px;background:var(--bg-deep);border-radius:10px;padding:4px;width:fit-content;max-width:100%;flex-wrap:wrap}
+.tabs button{font:inherit;font-size:14px;border:0;background:transparent;color:var(--on-bg-muted);padding:9px 16px;border-radius:7px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);font-weight:700}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+.note{font-size:13.5px;background:var(--bg-deep);color:var(--on-bg);border-radius:10px;padding:13px 16px;line-height:1.65}
+.note b{color:var(--gold)}
+
+/* level panels */
+.panel{background:var(--surface);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:16px}
+.phead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px}
+.phead h2{font-family:var(--f-display);font-weight:800;font-size:26px;letter-spacing:-.01em;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.panel > .phead:first-child{cursor:pointer}
+.fold{flex:none;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;margin-left:auto}
+.fold svg{width:14px;height:14px;transition:transform .2s ease}
+.panel.collapsed .fold svg{transform:rotate(180deg)}
+.panel.collapsed > :not(:first-child){display:none}
+.panel.collapsed{gap:0}
+.phead .award{margin-left:auto}
+.phead .award + .fold{margin-left:0}
+.phead h2 .lv{font-family:var(--f-body);font-size:17px;font-weight:700;color:var(--red)}
+.phead .sub{font-size:13px;color:var(--muted);width:100%;margin-top:-6px}
+.award{display:flex;align-items:center;gap:14px;border-radius:999px;padding:8px 8px 8px 18px;background:var(--card);color:var(--ink);max-width:100%}
+.award.got{background:linear-gradient(90deg,var(--red),var(--maroon));color:#fff}
+.award .a1{font-size:11.5px;opacity:.85}
+.award .a2{font-weight:700;font-size:14px}
+.award .score{flex:none;width:52px;height:52px;border-radius:50%;background:var(--gold);color:#1c1514;display:flex;align-items:center;justify-content:center;font-family:var(--f-mono);font-size:13px;font-weight:500}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.card{background:var(--card);border-radius:12px;padding:0 16px 14px;display:flex;flex-direction:column;gap:8px;min-width:0;min-height:170px}
+.card.done{background:var(--card-done)}
+.card.dim{opacity:.6}
+.tag{align-self:flex-start;font-size:11.5px;letter-spacing:.1em;font-weight:500;color:#fff;background:var(--red);padding:3px 9px;border-radius:0 0 5px 5px}
+.tag.mod{background:var(--maroon)}
+.card .t{font-weight:700;font-size:15px;line-height:1.35}
+.card .s{font-size:12.5px;color:var(--muted);line-height:1.5}
+.card .foot{margin-top:auto;display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:space-between}
+.chip{font-size:12px;font-weight:500;padding:3px 10px;border-radius:999px;white-space:nowrap;display:inline-flex;gap:5px;align-items:center}
+.chip.done{background:var(--pass);color:#fff}
+.chip.todo{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.chip.study{background:var(--study-soft);color:var(--study)}
+.chip.cond{background:var(--surface);color:var(--muted);border:1px dashed var(--muted)}
+select{font:inherit;font-size:12.5px;padding:4px 8px;border-radius:7px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;max-width:100%}
+select.passed{border-color:var(--pass);color:var(--pass);font-weight:500}
+select.studying{border-color:var(--study);color:var(--study);font-weight:500}
+.optsel{font-size:12px;color:var(--muted);display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.foot-note{font-size:12px;color:var(--muted)}
+
+/* ethics */
+.units{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.unit{display:flex;gap:12px;align-items:center;padding:11px 14px;border-radius:10px;background:var(--card);cursor:pointer;min-width:0}
+.unit.done{background:var(--card-done)}
+.unit input{width:18px;height:18px;accent-color:var(--pass);flex:none;cursor:pointer}
+.unit .un{font-family:var(--f-mono);font-size:12px;color:var(--muted);width:22px;flex:none}
+.unit.done .ut{color:var(--muted);text-decoration:line-through}
+
+/* table + timeline */
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:540px}
+th,td{text-align:left;padding:9px 12px;border-top:1px solid var(--line)}
+th{font-size:12px;color:var(--muted);font-weight:500;border-top:0}
+td.arrow{color:var(--muted);width:20px}
+tr.grp td{background:var(--card);font-weight:700;font-size:13px;padding-block:7px}
+tr.grp .lv{color:var(--red)}
+td .tsub{display:block;font-size:12px;color:var(--muted);font-weight:400}
+.timeline{display:flex;flex-direction:column}
+.tl{display:grid;grid-template-columns:128px 1fr;gap:14px;padding:10px 4px;border-top:1px solid var(--line);font-size:14px}
+.tl:first-child{border-top:0}
+.tl .d{font-family:var(--f-mono);font-size:13px;color:var(--muted)}
+.tl.past{opacity:.5}
+.tgrid{display:flex;flex-direction:column}
+.tr{display:grid;grid-template-columns:120px minmax(0,1fr) minmax(0,1fr);border-top:1px solid var(--line);font-size:14px}
+.tr > *{padding:11px 12px;min-width:0}
+.tr > .tc + .tc{border-left:1px solid var(--line)}
+.tr.thead{border-top:0;border-bottom:2px solid var(--ink)}
+.tr.thead h3{font-size:15px;font-weight:700;display:flex;gap:8px;align-items:baseline}
+.tr.thead h3 + h3{border-left:1px solid var(--line)}
+.tr.thead h3 .lv{color:var(--red)}
+.tr .d{font-family:var(--f-mono);font-size:13px;color:var(--muted)}
+.tr.now{grid-template-columns:120px 1fr;background:var(--study-soft);border-radius:8px;border-top:0;margin-block:2px}
+.tr.now .d{color:var(--study)}
+.tr.now + .tr{border-top:0}
+.tr.past{opacity:.5}
+.tc{display:flex;flex-direction:column;gap:10px}
+.ti .sub2{display:block;font-family:var(--f-mono);font-size:11.5px;color:var(--muted);margin-bottom:1px}
+.ti .tt{display:block}
+.ti .tn{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
+.ti.key .tt{font-weight:700;color:var(--red)}
+.ti.ref .tt{color:var(--muted)}
+.tc .empty{color:var(--line)}
+@media (max-width:760px){
+  .tr{grid-template-columns:1fr}
+  .tr > *{padding:6px 4px}
+  .tr > .tc + .tc{border-left:0}
+  .tr .d{padding-top:12px}
+  .tr.thead{display:none}
+  .tr.now{grid-template-columns:auto 1fr;padding-inline:8px}
+  .tc::before{content:"[" attr(data-who) "]";font-size:12px;font-weight:700;color:var(--red)}
+  .tc:has(.empty){display:none}
+}
+.tl .tt{display:block}
+.tl .tn{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
+.tl.key .tt{font-weight:700;color:var(--red)}
+.tl.ref .tt{color:var(--muted)}
+.tl.now{background:var(--study-soft);border-radius:8px;padding-inline:10px}
+.tl.now .d{color:var(--study)}
+
+.adv{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px;align-items:start}
+.adv table{min-width:440px}
+.adv td.num,.adv th.num{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--f-mono);font-size:13px}
+.adv tr.total td{font-weight:700;border-top:2px solid var(--ink)}
+.adv td.hl,.adv th.hl{background:var(--pass-soft)}
+.adv .tsub{display:block;font-size:12px;color:var(--muted);font-weight:400}
+.save{background:var(--red);color:#fff;border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:4px}
+.save .amt{font-family:var(--f-display);font-weight:800;font-size:40px;line-height:1.05}
+.save .s1{font-size:13.5px;opacity:.9}
+.steps{display:flex;flex-direction:column;gap:8px}
+@media (max-width:760px){.adv{grid-template-columns:1fr}}
+footer{font-size:12.5px;color:var(--on-bg-muted);line-height:1.7}
+footer a{color:var(--on-bg)}
+
+@media (max-width:640px){
+  .tl{grid-template-columns:96px 1fr;gap:10px}
+  .progress{grid-template-columns:1fr}
+  .units{grid-template-columns:1fr}
+  .ring{width:120px;height:120px}
+  .ring .n{font-size:36px}
+  .panel{padding:16px}
+  .award{border-radius:14px}
+}
+@media (prefers-reduced-motion:reduce){.bar span,.ring circle,.fold svg{transition:none}}
+</style>
+
+<div class="wrap">
+  <header class="hero">
+    <div>
+      <div class="eyebrow">ACCA Qualification · 개인 트래커</div>
+      <h1>나의 ACCA 로드맵</h1>
+      <div class="who"><b>University of Exeter</b> · 2027 졸업 예정<br>BSc/BA (Hons) Accounting and Finance</div>
+      <div class="sync" id="sync">진행 상황 불러오는 중…</div>
+      <div class="share"><button id="share-link">다른 기기로 옮기기 · 링크 복사</button></div>
+    </div>
+    <div class="ring" id="ring"></div>
+  </header>
+
+  <div class="progress" id="progress"></div>
+
+  <div class="tabs" role="tablist" aria-label="과목 체계">
+    <button role="tab" id="tab-new" aria-selected="true">신규 체계 · 2027년 9월부터</button>
+    <button role="tab" id="tab-cur" aria-selected="false">현행 체계 · 2027년 6월까지</button>
+  </div>
+
+  <div id="view" style="display:flex;flex-direction:column;gap:20px"></div>
+
+  <section class="panel" id="ethics" data-key="ethics"></section>
+
+  <section class="panel" data-key="map">
+    <div class="phead"><h2>현행 → 신규 대응표</h2></div>
+    <div class="phead"><span class="sub" style="margin-top:-12px">합격·면제는 신청 없이 자동으로 이월됩니다</span></div>
+    <div class="tablewrap"><table>
+      <thead><tr><th>현행</th><th></th><th>2027년 신규</th><th>내 상태</th></tr></thead>
+      <tbody id="maptable"></tbody>
+    </table></div>
+  </section>
+
+  <section class="panel" data-key="timeline">
+    <div class="phead"><h2>주요 일정</h2><span class="foot-note" id="today"></span></div>
+    <div class="tgrid" id="timeline"></div>
+  </section>
+
+  <section class="panel" id="advantage" data-key="advantage"></section>
+
+  <footer>
+    면제 근거: ACCA 면제 조회 (University of Exeter, 2027 졸업, BSc/BA (Hons) Accounting and Finance). PM·TX·FR·AA·FM은 해당 모듈을 이수하는 조건의 면제이며, 모두 충족하는 것으로 반영했습니다. 면제는 졸업 후 학위 증빙 제출과 면제 수수료 납부로 확정됩니다.<br>
+    신규 체계의 이월 결과는 ACCA Transition Tool 화면(10/14 완료) 기준입니다. 최신 내용은 <a href="https://www.accaglobal.com" target="_blank" rel="noopener">accaglobal.com</a>에서 확인하세요.
+  </footer>
+</div>
+
+<script>
+const TODAY = new Date();
+const BRACKET = ["[초급]","[중급]","[고급]"];
+
+// ---- static data ----
+// current system; ex = exempt via Exeter degree
+const CUR = [
+  {lv:0, name:"Applied Knowledge", items:[
+    {c:"BT", n:"Business and Technology", ex:true},
+    {c:"MA", n:"Management Accounting", ex:true},
+    {c:"FA", n:"Financial Accounting", ex:true},
+  ]},
+  {lv:1, name:"Applied Skills", items:[
+    {c:"LW", n:"Corporate and Business Law", ex:true},
+    {c:"PM", n:"Performance Management", ex:true, cond:"BEA1009/INT1009 + BEA2017 + BEA3017"},
+    {c:"TX", n:"Taxation", ex:true, cond:"BEA2002"},
+    {c:"FR", n:"Financial Reporting", ex:true, cond:"BEA2019 + BEA2020 + BEA3020"},
+    {c:"AA", n:"Audit and Assurance", ex:true, cond:"BEA3022"},
+    {c:"FM", n:"Financial Management", ex:true, cond:"BEA2018 + BEA3018"},
+  ]},
+  {lv:2, name:"Strategic Professional", items:[
+    {c:"SBL", n:"Strategic Business Leader"},
+    {c:"SBR", n:"Strategic Business Reporting"},
+    {slot:0}, {slot:1},
+    {mod:"EPSM", n:"Ethics and Professional Skills Module"},
+  ]},
+];
+const CUR_OPTS = [
+  {c:"AFM", n:"Advanced Financial Management"},
+  {c:"APM", n:"Advanced Performance Management"},
+  {c:"ATX", n:"Advanced Taxation (UK)"},
+  {c:"AAA", n:"Advanced Audit and Assurance (UK)"},
+];
+// new system; m = current paper whose result is credited
+const NEW = [
+  {lv:0, name:"Knowledge", sub:"시험 2027년 7월부터 · 모듈 2027년 초부터",
+   award:"Higher Diploma in Accounting and Business", items:[
+    {c:"K1", n:"Financial Accounting", m:"FA"},
+    {c:"K2", n:"Management Accounting", m:"MA"},
+    {c:"K3", n:"Business Law", m:"LW"},
+    {mod:"RBM", n:"Responsible Business Management", m:"BT", credit:"Business and Technology (BT) 면제로 인정"},
+  ]},
+  {lv:1, name:"Expertise", sub:"시험 2027년 9월부터 · 모듈 2027년 7월부터",
+   award:"Advanced Diploma in Accounting and Business", items:[
+    {c:"E1", n:"Taxation", m:"TX"},
+    {c:"E2", n:"Financial Reporting", m:"FR"},
+    {c:"E3", n:"Audit, Risk and Control", m:"AA"},
+    {c:"E4", n:"Finance and Investment", m:"FM"},
+    {c:"E5", n:"Performance with Data Analysis", m:"PM"},
+    {mod:"DTI", n:"Digital Tech and Innovation", credit:"Applied Skills를 모두 마치면 이 모듈은 면제"},
+  ]},
+  {lv:2, name:"Strategic Professional", sub:"시험 2027년 9월부터 · 모듈 2027년 7월부터",
+   award:"ACCA 회원 자격 (PER 완료 시)", items:[
+    {c:"S1", n:"Business and Sustainability Reporting", m:"SBR"},
+    {c:"S2", n:"Strategic Business Leader", m:"SBL"},
+    {slot:0},
+    {mod:"ESL", n:"Ethical, Sustainable Leadership", epsm:true, credit:"EPSM을 마치면 인정"},
+  ]},
+];
+const NEW_OPTS = [
+  {c:"SCF", n:"Corporate Finance Professional", m:"AFM"},
+  {c:"SPI", n:"Performance and Insights Professional", m:"APM"},
+  {c:"STA", n:"Taxation Advisory Professional", m:"ATX"},
+  {c:"SAA", n:"Audit and Assurance Professional", m:"AAA"},
+  {c:"SDS", n:"Data Science Professional"},
+];
+const UNITS = [
+  "Ethics and Professionalism","Personal Effectiveness","Communication and Interpersonal Skills",
+  "Commercial Awareness","Leadership and Team Working","Innovation and Scepticism",
+  "Data Analytics","Integrated Case Study","Strategic Professional Support","EPSM Final Assessment"
+];
+// one row per period; my = my tasks, sys = ACCA system changes. sub = finer date inside the period.
+const T_ROWS = [
+  {k:"2026-10", d:"2026.10–11", my:[{t:"대학 웨비나에서 ACCA Advantage 가입", n:"졸업 연도 2027 확인. 11월 말까지 공지가 없으면 튜터에게 코드 요청"}], sys:[]},
+  {k:"2026-11", d:"2026.11–2027.3", my:[{t:"EPSM 완료 (약 20시간)", n:"면제 확정 전이어도 진행 가능. 봄 학기 기말 전에 끝내기"}],
+    sys:[{sub:"2027 초", t:"Knowledge 단계 EEM 출시"}]},
+  {k:"2027-05", d:"2027.5–6", my:[{t:"졸업 시험", n:"ACCA 일정 없음"}],
+    sys:[{sub:"6월", t:"현행 Applied Skills·Strategic Professional 마지막 시험"}]},
+  {k:"2027-07", d:"2027.7–8", my:[
+      {sub:"7월 중순", t:"EPSM 마감", n:"이때까지 완료하면 ESL(약 60시간) 전부 인정", kind:"key"},
+      {sub:"7–8월", t:"최종 성적표로 9과목 면제 일괄 신청 후 수수료 결제", n:"9월 체계 전환 전에 처리"}],
+    sys:[{sub:"7월", t:"K1–K3 시험 시작 · Expertise/SP 단계 EEM 출시"},{sub:"7월 중순", t:"현행 LW·EPSM 마감"}]},
+  {k:"2027-09", d:"2027.9", my:[{t:"면제·EPSM 이월 결과 확인", n:"이 트래커와 ACCA Transition Tool에서 확인"}],
+    sys:[{t:"신규 체계 시작: E1–E5, S1·S2, 선택과목 5종 첫 시험", n:"기존 면제·합격·EPSM 자동 이월", kind:"key"}]},
+  {k:"2027-10", d:"2027 하반기", my:[{t:"첫 직장에서 PER 기록 시작", n:"36개월, 시험과 병행"}], sys:[]},
+  {k:"2027-12", d:"2027.12", my:[{t:"첫 고급과목 응시 (S1 또는 S2)", n:"9월 첫 회차는 학습 자료가 부족하니 건너뛰기"}], sys:[]},
+  {k:"2028-01", d:"2028", my:[
+      {t:"나머지 S과목과 선택과목(SCF 등) 응시", n:"3과목 합격 후 PER을 마치면 회원 자격"},
+      {sub:"1월경 · 참고", t:"Advantage 면제 할인 마감 (졸업 후 6개월)", n:"8월에 신청했다면 해당 없음", kind:"ref"}], sys:[]},
+];
+
+// ---- state ----
+const DEFAULT = {papers:{}, options:["AFM",""], newOpt:"SCF", units:[], adv:[], view:"new"};
+let state = structuredClone(DEFAULT);
+function lsGet(){try{return JSON.parse(localStorage.getItem("acca-roadmap")||"null")}catch(e){return null}}
+function lsSet(){try{localStorage.setItem("acca-roadmap",JSON.stringify(state))}catch(e){}}
+function merge(d){
+  state = Object.assign(structuredClone(DEFAULT), state, d||{});
+  if(!Array.isArray(state.adv)) state.adv = [];
+  if(!Array.isArray(state.options)) state.options = ["AFM",""];
+  while(state.options.length<2) state.options.push("");
+}
+const ls = lsGet(); merge(ls);
+
+const allCur = CUR.flatMap(l=>l.items).filter(i=>i.c);
+const isExempt = c => !!allCur.find(p=>p.c===c && p.ex);
+const st = c => state.papers[c] || "todo";            // todo | studying | passed
+const curStatus = c => isExempt(c) ? "exempt" : st(c);
+const epsmDone = () => state.units.length===UNITS.length;
+const newOptObj = () => NEW_OPTS.find(o=>o.c===state.newOpt) || NEW_OPTS[0];
+// status of the paper a new-system code depends on
+const newKey = o => o.m || o.c;
+
+// item status: exempt | passed | studying | todo  (done = exempt|passed)
+function itemStatus(view, it){
+  if(view==="cur"){
+    if(it.mod) return epsmDone() ? "passed" : (state.units.length?"studying":"todo");
+    if(it.slot!==undefined){ const c=state.options[it.slot]; return c?curStatus(c):"todo"; }
+    return curStatus(it.c);
+  }
+  if(it.mod==="DTI") return CUR[1].items.every(i=>isDone(curStatus(i.c))) ? "exempt" : "todo";
+  if(it.mod==="ESL") return epsmDone() ? "passed" : (state.units.length?"studying":"todo");
+  if(it.mod) return curStatus(it.m)==="exempt" ? "exempt" : curStatus(it.m);
+  if(it.slot!==undefined) return curStatus(newKey(newOptObj()));
+  return curStatus(it.m);
+}
+const isDone = s => s==="exempt"||s==="passed";
+
+function stats(view){
+  const lv = view==="cur"?CUR:NEW;
+  let total=0, done=0, exExam=0, pExam=0, sExam=0, nExam=0; const remaining=[];
+  lv.forEach(l=>l.items.forEach(it=>{
+    const s=itemStatus(view,it); total++; if(isDone(s)) done++;
+    if(it.mod) return;
+    nExam++;
+    if(s==="exempt") exExam++; else if(s==="passed") pExam++;
+    else { if(s==="studying") sExam++; remaining.push(it.slot!==undefined ? (view==="cur"?(state.options[it.slot]||"선택과목"):newOptObj().c) : it.c); }
+  }));
+  return {total,done,exExam,pExam,sExam,nExam,remaining};
+}
+
+// ---- render ----
+const $ = id => document.getElementById(id);
+const pct = (a,b) => b?(a/b*100):0;
+
+function renderRing(){
+  const s = stats(state.view), r=62, C=2*Math.PI*r, f=s.done/s.total;
+  $("ring").innerHTML = `<svg viewBox="0 0 150 150" aria-hidden="true">
+      <circle cx="75" cy="75" r="${r}" fill="none" stroke="var(--ring-track)" stroke-width="9"/>
+      <circle cx="75" cy="75" r="${r}" fill="none" stroke="#ffffff" stroke-width="9" stroke-linecap="round"
+        stroke-dasharray="${C*f} ${C}" style="transition:stroke-dasharray .5s ease"/></svg>
+    <div class="lbl" role="img" aria-label="전체 ${s.total}개 중 ${s.done}개 완료"><div class="n">${s.done}<small> / ${s.total}</small></div><div class="c">COMPLETE</div></div>`;
+}
+
+function renderProgress(){
+  const v=state.view, e=stats(v), done=e.exExam+e.pExam, u=state.units.length;
+  const left = e.nExam-done-e.sExam;
+  $("progress").innerHTML = `
+    <div class="pcard">
+      <div class="row"><span class="eyebrow">시험 진행도 · ${v==="cur"?"현행":"신규"} ${e.nExam}과목</span></div>
+      <div class="big">${done}<small> / ${e.nExam}</small></div>
+      <div class="bar" role="img" aria-label="면제 ${e.exExam}, 합격 ${e.pExam}, 공부 중 ${e.sExam}">
+        <span style="width:${pct(e.exExam,e.nExam)}%;background:var(--muted)"></span>
+        <span style="width:${pct(e.pExam,e.nExam)}%;background:var(--pass)"></span>
+        <span style="width:${pct(e.sExam,e.nExam)}%;background:var(--study)"></span>
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--muted)"></i>면제 ${e.exExam}</span>
+        <span><i style="background:var(--pass)"></i>합격 ${e.pExam}</span>
+        <span><i style="background:var(--study)"></i>공부 중 ${e.sExam}</span>
+        <span><i style="background:var(--line)"></i>남음 ${left}</span>
+      </div>
+      <div class="next">${e.remaining.length?`남은 시험: <b>${e.remaining.join(" · ")}</b>`:"<b>모든 시험 완료</b>"}</div>
+    </div>
+    <div class="pcard">
+      <div class="row"><span class="eyebrow">윤리 진행도 · EPSM</span></div>
+      <div class="big">${u}<small> / ${UNITS.length} 유닛</small></div>
+      <div class="bar" role="img" aria-label="EPSM ${u}/${UNITS.length}">
+        <span style="width:${pct(u,UNITS.length)}%;background:var(--pass)"></span>
+      </div>
+      <div class="legend"><span>EPSM을 마치면 신규 체계의 Ethical, Sustainable Leadership 모듈로 인정 · 현행 EPSM은 2027년 7월 중순 마감</span></div>
+    </div>`;
+}
+
+const chip = s => ({
+  exempt:`<span class="chip done">✓ 면제 완료</span>`,
+  passed:`<span class="chip done">✓ 합격</span>`,
+  studying:`<span class="chip study">공부 중</span>`,
+  todo:`<span class="chip todo">남음</span>`,
+}[s]);
+function statusSelect(code, s){
+  return `<select id="sel-${code}" data-code="${code}" class="${s}" aria-label="${code} 상태">
+    <option value="todo"${s==="todo"?" selected":""}>남음</option>
+    <option value="studying"${s==="studying"?" selected":""}>공부 중</option>
+    <option value="passed"${s==="passed"?" selected":""}>합격</option></select>`;
+}
+function card({tag, title, sub, s, control}){
+  return `<div class="card ${isDone(s)?"done":""}">
+    <span class="tag ${tag==="MODULE"?"mod":""}">${tag}</span>
+    <div class="t">${title}</div>${sub?`<div class="s">${sub}</div>`:""}
+    <div class="foot">${control||chip(s)}</div></div>`;
+}
+
+function renderCurCard(it){
+  const s=itemStatus("cur",it);
+  if(it.mod) return card({tag:"MODULE", title:`${it.mod} - ${it.n}`, sub:"아래 윤리 섹션에서 유닛별로 체크", s, control:epsmDone()?chip("passed"):`<span class="chip ${s==="studying"?"study":"todo"}">${state.units.length}/${UNITS.length} 유닛</span>`});
+  if(it.slot!==undefined){
+    const c=state.options[it.slot], other=state.options[1-it.slot];
+    const o=CUR_OPTS.find(x=>x.c===c);
+    const sel=`<label class="optsel">선택 ${it.slot+1}<select id="opt-cur-${it.slot}" data-optslot="${it.slot}" aria-label="현행 선택과목 ${it.slot+1}">
+      <option value="">고르기</option>${CUR_OPTS.filter(x=>x.c!==other).map(x=>`<option value="${x.c}"${x.c===c?" selected":""}>${x.c}</option>`).join("")}</select></label>`;
+    return `<div class="card ${isDone(s)?"done":""} ${c?"":"dim"}"><span class="tag">EXAM</span>
+      <div class="t">${o?`${o.c} - ${o.n}`:"선택과목 (4개 중 고르기)"}</div><div class="s">AFM · APM · ATX · AAA 중 2개</div>
+      <div class="foot">${sel}${c?statusSelect(c,s):""}</div></div>`;
+  }
+  if(s==="exempt") return card({tag:"EXAM", title:`${it.c} - ${it.n}`, sub:it.cond?`조건부 면제: ${it.cond}`:"Exeter 학위로 면제", s});
+  return card({tag:"EXAM", title:`${it.c} - ${it.n}`, s, control:statusSelect(it.c,s)});
+}
+
+function renderNewCard(it){
+  const s=itemStatus("new",it);
+  if(it.mod){
+    const ctrl = it.epsm && !epsmDone() ? `<span class="chip ${s==="studying"?"study":"todo"}">EPSM ${state.units.length}/${UNITS.length}</span>` : (isDone(s)?`<span class="chip done">✓ 인정 완료</span>`:chip(s));
+    return card({tag:"MODULE", title:`Essential Employability Module: ${it.n}`, sub:it.credit, s, control:ctrl});
+  }
+  if(it.slot!==undefined){
+    const o=newOptObj(), k=newKey(o);
+    const sel=`<label class="optsel">옵션 변경<select id="opt-new" data-newopt="1" aria-label="신규 선택과목">${NEW_OPTS.map(x=>`<option value="${x.c}"${x.c===o.c?" selected":""}>${x.c}</option>`).join("")}</select></label>`;
+    return `<div class="card ${isDone(s)?"done":""}"><span class="tag">EXAM</span>
+      <div class="t">${o.c} - ${o.n}</div><div class="s">${o.m?`현행 ${o.m} 합격 시 인정`:"신규 과목 · 현행 대응 없음"}</div>
+      <div class="foot">${sel}${statusSelect(k,s)}</div></div>`;
+  }
+  const src = allCur.find(x=>x.c===it.m);
+  const sub = `인정 근거: ${src.n} (${src.c})`;
+  if(s==="exempt") return card({tag:"EXAM", title:`${it.c} - ${it.n}`, sub, s, control:`<span class="chip done">✓ 인정 완료</span>`});
+  return card({tag:"EXAM", title:`${it.c} - ${it.n}`, sub, s, control:statusSelect(it.m,s)});
+}
+
+function renderView(){
+  const v=state.view;
+  $("tab-new").setAttribute("aria-selected", v==="new");
+  $("tab-cur").setAttribute("aria-selected", v==="cur");
+  let html = v==="new"
+    ? `<div class="note"><b>바뀌는 점.</b> 시험은 13과목에서 11과목으로 줄고, 시험과 필수 직무역량 모듈(EEM)을 합쳐 14개 항목이 됩니다. BT는 폐지되어 Responsible Business Management 모듈로 인정되고, Strategic Professional 선택과목은 1개만 고릅니다. 이미 받은 면제와 합격은 그대로 이어집니다.</div>`
+    : `<div class="note"><b>참고.</b> 면제는 2027년 졸업 후 확정되는데, 현행 Strategic Professional 시험은 2027년 6월이 마지막입니다. 그래서 남은 시험은 대부분 <b>신규 체계(선택 1과목)</b>로 보게 될 가능성이 높습니다.</div>`;
+  const levels = v==="new"?NEW:CUR;
+  let cum=0, cumTotal=0;
+  for(const l of levels){
+    const sts = l.items.map(it=>itemStatus(v,it));
+    const d = sts.filter(isDone).length;
+    cum+=d; cumTotal+=l.items.length;
+    let badge="";
+    if(v==="new"){
+      const got = cum===cumTotal;
+      badge = `<div class="award ${got?"got":""}"><div><div class="a1">${got?"취득 요건 충족":"완료하면 받을 수 있는 자격"}</div><div class="a2">${l.award}</div></div><div class="score">${cum}/${cumTotal}</div></div>`;
+    } else {
+      badge = `<div class="award ${d===l.items.length?"got":""}"><div><div class="a1">${l.items.length}개 항목</div><div class="a2">${d===l.items.length?"이 단계 완료":"진행 중"}</div></div><div class="score">${d}/${l.items.length}</div></div>`;
+    }
+    html += `<section class="panel" data-key="${v}-${l.lv}">
+      <div class="phead"><h2><span class="lv">${BRACKET[l.lv]}</span>${l.name}</h2>${badge}${l.sub?`<span class="sub">${l.sub}</span>`:""}</div>
+      <div class="cards">${l.items.map(it=>v==="new"?renderNewCard(it):renderCurCard(it)).join("")}</div>
+    </section>`;
+  }
+  $("view").innerHTML = html;
+}
+
+function renderEthics(){
+  $("ethics").innerHTML = `<div class="phead"><h2><span class="lv">[윤리]</span>Ethics and Professional Skills Module</h2>
+      <div class="award ${epsmDone()?"got":""}"><div><div class="a1">신규 체계 인정 대상</div><div class="a2">Ethical, Sustainable Leadership</div></div><div class="score">${state.units.length}/${UNITS.length}</div></div></div>
+    <div class="units">${UNITS.map((u,i)=>{const d=state.units.includes(i);return `<label class="unit ${d?"done":""}" for="unit-${i}"><input type="checkbox" id="unit-${i}" data-unit="${i}"${d?" checked":""}><span class="un">${String(i+1).padStart(2,"0")}</span><span class="ut">${u}</span></label>`}).join("")}</div>`;
+}
+
+function renderMap(){
+  const lab = s => ({exempt:"면제",passed:"합격",studying:"공부 중",todo:"남음"}[s]);
+  const P = c => [...allCur, ...CUR_OPTS].find(x=>x.c===c);
+  const row = (from, to, status) => `<tr><td>${from}</td><td class="arrow">→</td><td>${to}</td><td>${status}</td></tr>`;
+  const paper = c => { const p=P(c); return `<b>${p.c}</b> ${p.n}`; };
+  const target = c => { const n=NEW.flatMap(l=>l.items).find(x=>x.m===c && !x.mod) || NEW_OPTS.find(x=>x.m===c); return `<b>${n.c}</b> ${n.n}`; };
+  const groups = [
+    ["[초급]","Knowledge", [
+      row(paper("FA"), target("FA"), lab(curStatus("FA"))),
+      row(paper("MA"), target("MA"), lab(curStatus("MA"))),
+      row(paper("LW")+` <span class="tsub">현행에서는 Applied Skills</span>`, target("LW"), lab(curStatus("LW"))),
+      row(paper("BT")+` <span class="tsub">폐지</span>`, "EEM Responsible Business Management", lab(curStatus("BT"))),
+    ]],
+    ["[중급]","Expertise", [
+      ...["TX","FR","AA","FM","PM"].map(c=>row(paper(c), target(c), lab(curStatus(c)))),
+      row("Applied Skills 전체", "EEM Digital Tech and Innovation", "면제"),
+    ]],
+    ["[고급]","Strategic Professional", [
+      ...["SBR","SBL","AFM","APM","ATX","AAA"].map(c=>row(paper(c), target(c), lab(curStatus(c)))),
+      row("—", `<b>SDS</b> Data Science Professional <span class="tsub">신규 선택과목</span>`, "—"),
+    ]],
+    ["[윤리]","Ethics", [
+      row(`<b>EPSM</b> Ethics and Professional Skills Module`, "EEM Ethical, Sustainable Leadership", `${state.units.length}/${UNITS.length} 유닛`),
+    ]],
+  ];
+  $("maptable").innerHTML = groups.map(([b,n,rows])=>`<tr class="grp"><td colspan="4"><span class="lv">${b}</span> ${n}</td></tr>${rows.join("")}`).join("");
+}
+
+function renderTimeline(){
+  const ym = TODAY.getFullYear()+"-"+String(TODAY.getMonth()+1).padStart(2,"0");
+  $("today").textContent = "오늘 " + TODAY.toLocaleDateString("ko-KR");
+  const item = x => `<div class="ti ${x.kind||""}">${x.sub?`<span class="sub2">${x.sub}</span>`:""}<span class="tt">${x.t}</span>${x.n?`<span class="tn">${x.n}</span>`:""}</div>`;
+  const cell = (list, who) => `<div class="tc" data-who="${who}">${list.length?list.map(item).join(""):'<span class="empty">—</span>'}</div>`;
+  const rows = T_ROWS.map(r=>({...r}));
+  let html = `<div class="tr thead"><span></span><h3><span class="lv">[할 일]</span>내가 해야 할 것</h3><h3><span class="lv">[ACCA]</span>체계 변경</h3></div>`;
+  let placed = false;
+  for(const r of rows){
+    if(!placed && r.k >= ym){ html += `<div class="tr now"><span class="d">오늘</span><b>${TODAY.toLocaleDateString("ko-KR")}</b></div>`; placed = true; }
+    html += `<div class="tr ${r.k<ym?"past":""}"><span class="d">${r.d}</span>${cell(r.my,"할 일")}${cell(r.sys,"ACCA")}</div>`;
+  }
+  if(!placed) html += `<div class="tr now"><span class="d">오늘</span><b>${TODAY.toLocaleDateString("ko-KR")}</b></div>`;
+  $("timeline").innerHTML = html;
+}
+
+const ADV_STEPS = [
+  ["ACCA Advantage 가입","2026년 10–11월 대학 웨비나 · 공지 없으면 튜터에게 코드 요청"],
+  ["Exeter 졸업","2027년 · 학위 증명서 발급"],
+  ["최종 성적표로 면제 9과목 일괄 신청","2027년 7–8월, 9월 체계 전환 전 · 졸업 후 6개월 안이면 할인가"],
+  ["ACCA 학생 등록 및 면제 비용 납부","등록비 £40 + 면제 £495 = £535"],
+];
+const ADV_ROWS = [
+  ["면제 과목 수 (최대)","9","9"],
+  ["면제 9과목 비용<span class='tsub'>졸업 후 6개월 동안 할인</span>","£1,032","£495"],
+  ["연회비","£244","£0"],
+  ["등록비","£89","£40"],
+];
+function renderAdvantage(){
+  const n=state.adv.length, all=n===ADV_STEPS.length;
+  $("advantage").innerHTML = `<div class="phead"><h2><span class="lv">[혜택]</span>ACCA Advantage</h2>
+      <div class="award ${all?"got":""}"><div><div class="a1">${all?"모든 단계 완료":"다음 할 일"}</div><div class="a2">${all?"Advantage 혜택 적용 완료":ADV_STEPS.find((_,i)=>!state.adv.includes(i))[0]}</div></div><div class="score">${n}/${ADV_STEPS.length}</div></div></div>
+    <div class="adv">
+      <div class="tablewrap"><table>
+        <thead><tr><th></th><th class="num">일반 학생</th><th class="num hl">Advantage 학생</th></tr></thead>
+        <tbody>${ADV_ROWS.map(r=>`<tr><td>${r[0]}</td><td class="num">${r[1]}</td><td class="num hl">${r[2]}</td></tr>`).join("")}
+        <tr class="total"><td>합계</td><td class="num">£1,365</td><td class="num hl">£535</td></tr></tbody>
+      </table></div>
+      <div class="save"><span class="s1">Advantage로 면제 9과목을 신청하면</span><span class="amt">£830 절약</span><span class="s1">면제 할인은 졸업 후 6개월까지만 적용됩니다.</span></div>
+    </div>
+    <div class="steps">${ADV_STEPS.map((x,i)=>{const d=state.adv.includes(i);return `<label class="unit ${d?"done":""}" for="adv-${i}"><input type="checkbox" id="adv-${i}" data-adv="${i}"${d?" checked":""}><span class="un">${i+1}</span><span><span class="ut">${x[0]}</span><span class="tsub" style="display:block;font-size:12px;color:var(--muted)">${x[1]}</span></span></label>`}).join("")}</div>`;
+}
+
+let folded = new Set();
+try{ folded = new Set(JSON.parse(localStorage.getItem("acca-folded")||"[]")); }catch(e){}
+function decoratePanels(){
+  document.querySelectorAll(".panel[data-key]").forEach(p=>{
+    const k=p.dataset.key, head=p.querySelector(":scope > .phead");
+    if(!head) return;
+    let b=head.querySelector(":scope > .fold");
+    if(!b){
+      b=document.createElement("button");
+      b.className="fold"; b.type="button"; b.dataset.fold=k;
+      b.innerHTML='<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 9.5 7 4.5l5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      const sub=head.querySelector(":scope > .sub");
+      sub ? head.insertBefore(b, sub) : head.appendChild(b);
+    }
+    const c=folded.has(k);
+    p.classList.toggle("collapsed", c);
+    b.setAttribute("aria-expanded", String(!c));
+    b.setAttribute("aria-label", (c?"펼치기: ":"접기: ")+head.querySelector("h2").textContent);
+  });
+}
+
+function renderAll(){renderRing();renderProgress();renderAdvantage();renderView();renderEthics();renderMap();renderTimeline();decoratePanels()}
+
+// ---- events ----
+document.addEventListener("change", e=>{
+  const t=e.target;
+  if(t.dataset.code){ state.papers[t.dataset.code]=t.value; }
+  else if(t.dataset.optslot!==undefined){ state.options[+t.dataset.optslot]=t.value; }
+  else if(t.dataset.newopt){ state.newOpt=t.value; }
+  else if(t.dataset.unit!==undefined){
+    const i=+t.dataset.unit;
+    state.units = t.checked ? [...new Set([...state.units,i])].sort((a,b)=>a-b) : state.units.filter(x=>x!==i);
+  } else if(t.dataset.adv!==undefined){
+    const i=+t.dataset.adv;
+    state.adv = t.checked ? [...new Set([...state.adv,i])].sort((a,b)=>a-b) : state.adv.filter(x=>x!==i);
+  } else return;
+  const id=t.id; save(); renderAll(); document.getElementById(id)?.focus();
+});
+document.addEventListener("click", e=>{
+  const head=e.target.closest(".panel[data-key] > .phead:first-child");
+  if(head && !e.target.closest("select,input,label,a")){
+    const k=head.parentElement.dataset.key;
+    folded.has(k) ? folded.delete(k) : folded.add(k);
+    try{ localStorage.setItem("acca-folded", JSON.stringify([...folded])); }catch(err){}
+    decoratePanels(); return;
+  }
+  if(e.target.id==="tab-cur"||e.target.id==="tab-new"){
+    state.view = e.target.id==="tab-cur"?"cur":"new"; lsSet(); renderAll();
+  }
+});
+
+// ---- persistence: account db with local fallback ----
+let ref=null, timer=null;
+function save(){
+  lsSet();
+  if(!ref) return;
+  clearTimeout(timer);
+  timer=setTimeout(async()=>{
+    try{ await ref.set({papers:state.papers, options:state.options, newOpt:state.newOpt, units:state.units, adv:state.adv, updatedAt:Date.now()}); $("sync").textContent="계정에 저장됨"; }
+    catch(err){ $("sync").textContent="저장 실패 · 이 브라우저에만 보관 중"; }
+  },500);
+}
+// ---- move progress between devices via link (#s=...) ----
+const SYNC_KEYS = ["papers","options","newOpt","units","adv"];
+let imported=false;
+function encodeState(){
+  const o={}; SYNC_KEYS.forEach(k=>o[k]=state[k]);
+  const bytes=new TextEncoder().encode(JSON.stringify(o));
+  return btoa(String.fromCharCode(...bytes)).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+}
+function decodeState(str){
+  const b=atob(str.replace(/-/g,"+").replace(/_/g,"/"));
+  return JSON.parse(new TextDecoder().decode(Uint8Array.from(b,c=>c.charCodeAt(0))));
+}
+(function importFromHash(){
+  const m=location.hash.match(/^#s=([\w-]+)/);
+  if(!m) return;
+  history.replaceState(null,"",location.pathname+location.search);
+  try{
+    const d=decodeState(m[1]);
+    if(confirm("링크에 담긴 진행 상황을 불러올까요?\n이 기기에 저장된 기록은 덮어씁니다.")){
+      const o={}; SYNC_KEYS.forEach(k=>{ if(k in d) o[k]=d[k]; });
+      merge(o); lsSet(); imported=true;
+    }
+  }catch(err){ alert("링크가 올바르지 않아 불러오지 못했어요."); }
+})();
+$("share-link").addEventListener("click", async()=>{
+  const url=location.origin+location.pathname+"#s="+encodeState();
+  const btn=$("share-link"), label=btn.textContent;
+  try{ await navigator.clipboard.writeText(url); btn.textContent="복사됨 · 다른 기기에서 열기"; }
+  catch(err){ prompt("이 링크를 복사해서 다른 기기에서 여세요", url); }
+  setTimeout(()=>btn.textContent=label, 2500);
+});
+renderAll();
+(async()=>{
+  try{
+    const db = await window.claude?.use?.("db");
+    const user = await window.claude?.use?.("user");
+    const id = user ? await user.id() : null;
+    if(!db || !id){ $("sync").textContent="이 기기에 자동 저장됨"; return; }
+    ref = db.doc(`data/users/${id}/acca`);
+    const snap = await ref.get();
+    const d = snap.exists ? snap.data() : null;
+    if(imported){ save(); }
+    else if(d){ merge({papers:d.papers||{}, options:d.options||state.options, newOpt:d.newOpt||state.newOpt, units:d.units||[], adv:d.adv||[]}); lsSet(); renderAll(); }
+    else if(ls){ save(); }
+    $("sync").textContent="계정에 저장됨";
+  }catch(err){ $("sync").textContent="이 기기에 자동 저장됨"; }
+})();
+</script>
