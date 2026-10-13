@@ -39,9 +39,6 @@ h1,h2,h3{text-wrap:balance;margin:0}
 .who{font-size:13.5px;color:var(--on-bg-muted);margin-top:10px;line-height:1.6}
 .who b{color:var(--on-bg);font-weight:500}
 .sync{font-size:12px;color:var(--on-bg-muted);margin-top:4px}
-.share{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.share button{font:inherit;font-size:12.5px;border:1px solid var(--on-bg-muted);background:transparent;color:var(--on-bg);padding:5px 11px;border-radius:999px;cursor:pointer}
-.share button:hover{background:var(--bg-deep)}
 .ring{position:relative;width:150px;height:150px;flex:none}
 .ring svg{width:100%;height:100%;transform:rotate(-90deg)}
 .ring .lbl{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--on-bg)}
@@ -202,7 +199,6 @@ footer a{color:var(--on-bg)}
       <h1>나의 ACCA 로드맵</h1>
       <div class="who"><b>University of Exeter</b> · 2027 졸업 예정<br>BSc/BA (Hons) Accounting and Finance</div>
       <div class="sync" id="sync">진행 상황 불러오는 중…</div>
-      <div class="share"><button id="share-link">다른 기기로 옮기기 · 링크 복사</button></div>
     </div>
     <div class="ring" id="ring"></div>
   </header>
@@ -641,41 +637,11 @@ function save(){
   if(!ref) return;
   clearTimeout(timer);
   timer=setTimeout(async()=>{
+    timer=null;
     try{ await ref.set({papers:state.papers, options:state.options, newOpt:state.newOpt, units:state.units, adv:state.adv, updatedAt:Date.now()}); $("sync").textContent="계정에 저장됨"; }
     catch(err){ $("sync").textContent="저장 실패 · 이 브라우저에만 보관 중"; }
   },500);
 }
-// ---- move progress between devices via link (#s=...) ----
-const SYNC_KEYS = ["papers","options","newOpt","units","adv"];
-let imported=false;
-function encodeState(){
-  const o={}; SYNC_KEYS.forEach(k=>o[k]=state[k]);
-  const bytes=new TextEncoder().encode(JSON.stringify(o));
-  return btoa(String.fromCharCode(...bytes)).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
-}
-function decodeState(str){
-  const b=atob(str.replace(/-/g,"+").replace(/_/g,"/"));
-  return JSON.parse(new TextDecoder().decode(Uint8Array.from(b,c=>c.charCodeAt(0))));
-}
-(function importFromHash(){
-  const m=location.hash.match(/^#s=([\w-]+)/);
-  if(!m) return;
-  history.replaceState(null,"",location.pathname+location.search);
-  try{
-    const d=decodeState(m[1]);
-    if(confirm("링크에 담긴 진행 상황을 불러올까요?\n이 기기에 저장된 기록은 덮어씁니다.")){
-      const o={}; SYNC_KEYS.forEach(k=>{ if(k in d) o[k]=d[k]; });
-      merge(o); lsSet(); imported=true;
-    }
-  }catch(err){ alert("링크가 올바르지 않아 불러오지 못했어요."); }
-})();
-$("share-link").addEventListener("click", async()=>{
-  const url=location.origin+location.pathname+"#s="+encodeState();
-  const btn=$("share-link"), label=btn.textContent;
-  try{ await navigator.clipboard.writeText(url); btn.textContent="복사됨 · 다른 기기에서 열기"; }
-  catch(err){ prompt("이 링크를 복사해서 다른 기기에서 여세요", url); }
-  setTimeout(()=>btn.textContent=label, 2500);
-});
 renderAll();
 (async()=>{
   try{
@@ -684,12 +650,18 @@ renderAll();
     const id = user ? await user.id() : null;
     if(!db || !id){ $("sync").textContent="이 기기에 자동 저장됨"; return; }
     ref = db.doc(`data/users/${id}/acca`);
-    const snap = await ref.get();
-    const d = snap.exists ? snap.data() : null;
-    if(imported){ save(); }
-    else if(d){ merge({papers:d.papers||{}, options:d.options||state.options, newOpt:d.newOpt||state.newOpt, units:d.units||[], adv:d.adv||[]}); lsSet(); renderAll(); }
-    else if(ls){ save(); }
-    $("sync").textContent="계정에 저장됨";
+    // live: a change on any device shows up on every open device
+    let first=true;
+    ref.onSnapshot(snap=>{
+      const d = snap.exists ? snap.data() : null;
+      if(first){ first=false; if(!d && ls){ save(); } }
+      if(d && !snap.metadata.hasPendingWrites && !timer){
+        const focus=document.activeElement?.id;
+        merge({papers:d.papers||{}, options:d.options||state.options, newOpt:d.newOpt||state.newOpt, units:d.units||[], adv:d.adv||[]});
+        lsSet(); renderAll(); if(focus) document.getElementById(focus)?.focus();
+      }
+      $("sync").textContent="계정에 저장됨 · 모든 기기에 자동 반영";
+    }, ()=>{ $("sync").textContent="동기화 끊김 · 이 기기에만 저장 중"; });
   }catch(err){ $("sync").textContent="이 기기에 자동 저장됨"; }
 })();
 </script>
