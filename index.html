@@ -64,6 +64,10 @@ h1,h2,h3{text-wrap:balance;margin:0}
 .tabs button{font:inherit;font-size:14px;border:0;background:transparent;color:var(--on-bg-muted);padding:9px 16px;border-radius:7px;cursor:pointer}
 .tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);font-weight:700}
 button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.topbar{display:flex;justify-content:flex-end;margin-bottom:-12px}
+.lang{display:flex;gap:2px;background:var(--bg-deep);border-radius:999px;padding:3px}
+.lang button{font:inherit;font-size:12.5px;border:0;background:transparent;color:var(--on-bg-muted);padding:5px 12px;border-radius:999px;cursor:pointer}
+.lang button[aria-pressed="true"]{background:var(--surface);color:var(--ink);font-weight:700}
 
 .note{font-size:13.5px;background:var(--bg-deep);color:var(--on-bg);border-radius:10px;padding:13px 16px;line-height:1.65}
 .note b{color:var(--gold)}
@@ -193,11 +197,17 @@ footer a{color:var(--on-bg)}
 </style>
 
 <div class="wrap">
+  <div class="topbar">
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-lang="ko" aria-pressed="true">한국어</button>
+      <button type="button" data-lang="en" aria-pressed="false">English</button>
+    </div>
+  </div>
   <header class="hero">
     <div>
-      <div class="eyebrow">ACCA Qualification · 개인 트래커</div>
-      <h1>나의 ACCA 로드맵</h1>
-      <div class="who"><b>University of Exeter</b> · 2027 졸업 예정<br>BSc/BA (Hons) Accounting and Finance</div>
+      <div class="eyebrow" id="s-eyebrow">ACCA Qualification · 개인 트래커</div>
+      <h1 id="s-title">나의 ACCA 로드맵</h1>
+      <div class="who" id="s-who"><b>University of Exeter</b> · 2027 졸업 예정<br>BSc/BA (Hons) Accounting and Finance</div>
       <div class="sync" id="sync">진행 상황 불러오는 중…</div>
     </div>
     <div class="ring" id="ring"></div>
@@ -205,7 +215,7 @@ footer a{color:var(--on-bg)}
 
   <div class="progress" id="progress"></div>
 
-  <div class="tabs" role="tablist" aria-label="과목 체계">
+  <div class="tabs" role="tablist" aria-label="과목 체계" id="tabs">
     <button role="tab" id="tab-new" aria-selected="true">신규 체계 · 2027년 9월부터</button>
     <button role="tab" id="tab-cur" aria-selected="false">현행 체계 · 2027년 6월까지</button>
   </div>
@@ -215,30 +225,34 @@ footer a{color:var(--on-bg)}
   <section class="panel" id="ethics" data-key="ethics"></section>
 
   <section class="panel" data-key="map">
-    <div class="phead"><h2>현행 → 신규 대응표</h2></div>
-    <div class="phead"><span class="sub" style="margin-top:-12px">합격·면제는 신청 없이 자동으로 이월됩니다</span></div>
+    <div class="phead"><h2 id="s-map">현행 → 신규 대응표</h2></div>
+    <div class="phead"><span class="sub" style="margin-top:-12px" id="s-mapsub">합격·면제는 신청 없이 자동으로 이월됩니다</span></div>
     <div class="tablewrap"><table>
-      <thead><tr><th>현행</th><th></th><th>2027년 신규</th><th>내 상태</th></tr></thead>
+      <thead id="s-maphead"><tr><th>현행</th><th></th><th>2027년 신규</th><th>내 상태</th></tr></thead>
       <tbody id="maptable"></tbody>
     </table></div>
   </section>
 
   <section class="panel" data-key="timeline">
-    <div class="phead"><h2>주요 일정</h2><span class="foot-note" id="today"></span></div>
+    <div class="phead"><h2 id="s-tl">주요 일정</h2><span class="foot-note" id="today"></span></div>
     <div class="tgrid" id="timeline"></div>
   </section>
 
   <section class="panel" id="advantage" data-key="advantage"></section>
 
-  <footer>
-    면제 근거: ACCA 면제 조회 (University of Exeter, 2027 졸업, BSc/BA (Hons) Accounting and Finance). PM·TX·FR·AA·FM은 해당 모듈을 이수하는 조건의 면제이며, 모두 충족하는 것으로 반영했습니다. 면제는 졸업 후 학위 증빙 제출과 면제 수수료 납부로 확정됩니다.<br>
-    신규 체계의 이월 결과는 ACCA Transition Tool 화면(10/14 완료) 기준입니다. 최신 내용은 <a href="https://www.accaglobal.com" target="_blank" rel="noopener">accaglobal.com</a>에서 확인하세요.
-  </footer>
+  <footer id="s-footer"></footer>
 </div>
 
 <script>
 const TODAY = new Date();
-const BRACKET = ["[초급]","[중급]","[고급]"];
+
+// ---- language: per-device preference ----
+let lang = "ko";
+try{ if(localStorage.getItem("acca-lang")==="en") lang="en"; }catch(e){}
+const t = (ko,en) => lang==="en"?en:ko;
+const L = x => Array.isArray(x) ? t(x[0],x[1]) : x;   // [ko, en] pair or plain string
+const fmtDate = d => d.toLocaleDateString(t("ko-KR","en-GB"), lang==="en"?{day:"numeric",month:"short",year:"numeric"}:undefined);
+const BRACKET = [["[초급]","[Basic]"],["[중급]","[Intermediate]"],["[고급]","[Advanced]"]];
 
 // ---- static data ----
 // current system; ex = exempt via Exeter degree
@@ -271,28 +285,28 @@ const CUR_OPTS = [
 ];
 // new system; m = current paper whose result is credited
 const NEW = [
-  {lv:0, name:"Knowledge", sub:"시험 2027년 7월부터 · 모듈 2027년 초부터",
+  {lv:0, name:"Knowledge", sub:["시험 2027년 7월부터 · 모듈 2027년 초부터","Exams from Jul 2027 · module from early 2027"],
    award:"Higher Diploma in Accounting and Business", items:[
     {c:"K1", n:"Financial Accounting", m:"FA"},
     {c:"K2", n:"Management Accounting", m:"MA"},
     {c:"K3", n:"Business Law", m:"LW"},
-    {mod:"RBM", n:"Responsible Business Management", m:"BT", credit:"Business and Technology (BT) 면제로 인정"},
+    {mod:"RBM", n:"Responsible Business Management", m:"BT", credit:["Business and Technology (BT) 면제로 인정","Credited via the Business and Technology (BT) exemption"]},
   ]},
-  {lv:1, name:"Expertise", sub:"시험 2027년 9월부터 · 모듈 2027년 7월부터",
+  {lv:1, name:"Expertise", sub:["시험 2027년 9월부터 · 모듈 2027년 7월부터","Exams from Sep 2027 · modules from Jul 2027"],
    award:"Advanced Diploma in Accounting and Business", items:[
     {c:"E1", n:"Taxation", m:"TX"},
     {c:"E2", n:"Financial Reporting", m:"FR"},
     {c:"E3", n:"Audit, Risk and Control", m:"AA"},
     {c:"E4", n:"Finance and Investment", m:"FM"},
     {c:"E5", n:"Performance with Data Analysis", m:"PM"},
-    {mod:"DTI", n:"Digital Tech and Innovation", credit:"Applied Skills를 모두 마치면 이 모듈은 면제"},
+    {mod:"DTI", n:"Digital Tech and Innovation", credit:["Applied Skills를 모두 마치면 이 모듈은 면제","Exempt once all Applied Skills are complete"]},
   ]},
-  {lv:2, name:"Strategic Professional", sub:"시험 2027년 9월부터 · 모듈 2027년 7월부터",
-   award:"ACCA 회원 자격 (PER 완료 시)", items:[
+  {lv:2, name:"Strategic Professional", sub:["시험 2027년 9월부터 · 모듈 2027년 7월부터","Exams from Sep 2027 · modules from Jul 2027"],
+   award:["ACCA 회원 자격 (PER 완료 시)","ACCA membership (once PER is complete)"], items:[
     {c:"S1", n:"Business and Sustainability Reporting", m:"SBR"},
     {c:"S2", n:"Strategic Business Leader", m:"SBL"},
     {slot:0},
-    {mod:"ESL", n:"Ethical, Sustainable Leadership", epsm:true, credit:"EPSM을 마치면 인정"},
+    {mod:"ESL", n:"Ethical, Sustainable Leadership", epsm:true, credit:["EPSM을 마치면 인정","Credited once EPSM is complete"]},
   ]},
 ];
 const NEW_OPTS = [
@@ -309,22 +323,22 @@ const UNITS = [
 ];
 // one row per period; my = my tasks, sys = ACCA system changes. sub = finer date inside the period.
 const T_ROWS = [
-  {k:"2026-10", d:"2026.10–11", my:[{t:"대학 웨비나에서 ACCA Advantage 가입", n:"졸업 연도 2027 확인. 11월 말까지 공지가 없으면 튜터에게 코드 요청"}], sys:[]},
-  {k:"2026-11", d:"2026.11–2027.3", my:[{t:"EPSM 완료 (약 20시간)", n:"면제 확정 전이어도 진행 가능. 봄 학기 기말 전에 끝내기"}],
-    sys:[{sub:"2027 초", t:"Knowledge 단계 EEM 출시"}]},
-  {k:"2027-05", d:"2027.5–6", my:[{t:"졸업 시험", n:"ACCA 일정 없음"}],
-    sys:[{sub:"6월", t:"현행 Applied Skills·Strategic Professional 마지막 시험"}]},
-  {k:"2027-07", d:"2027.7–8", my:[
-      {sub:"7월 중순", t:"EPSM 마감", n:"이때까지 완료하면 ESL(약 60시간) 전부 인정", kind:"key"},
-      {sub:"7–8월", t:"최종 성적표로 9과목 면제 일괄 신청 후 수수료 결제", n:"9월 체계 전환 전에 처리"}],
-    sys:[{sub:"7월", t:"K1–K3 시험 시작 · Expertise/SP 단계 EEM 출시"},{sub:"7월 중순", t:"현행 LW·EPSM 마감"}]},
-  {k:"2027-09", d:"2027.9", my:[{t:"면제·EPSM 이월 결과 확인", n:"이 트래커와 ACCA Transition Tool에서 확인"}],
-    sys:[{t:"신규 체계 시작: E1–E5, S1·S2, 선택과목 5종 첫 시험", n:"기존 면제·합격·EPSM 자동 이월", kind:"key"}]},
-  {k:"2027-10", d:"2027 하반기", my:[{t:"첫 직장에서 PER 기록 시작", n:"36개월, 시험과 병행"}], sys:[]},
-  {k:"2027-12", d:"2027.12", my:[{t:"첫 고급과목 응시 (S1 또는 S2)", n:"9월 첫 회차는 학습 자료가 부족하니 건너뛰기"}], sys:[]},
+  {k:"2026-10", d:["2026.10–11","Oct–Nov 2026"], my:[{t:["대학 웨비나에서 ACCA Advantage 가입","Join ACCA Advantage at the university webinar"], n:["졸업 연도 2027 확인. 11월 말까지 공지가 없으면 튜터에게 코드 요청","Confirm graduation year is 2027. If there's no notice by end of November, ask your tutor for the code"]}], sys:[]},
+  {k:"2026-11", d:["2026.11–2027.3","Nov 2026 – Mar 2027"], my:[{t:["EPSM 완료 (약 20시간)","Complete EPSM (about 20 hours)"], n:["면제 확정 전이어도 진행 가능. 봄 학기 기말 전에 끝내기","Can be done before exemptions are confirmed. Finish before spring term finals"]}],
+    sys:[{sub:["2027 초","Early 2027"], t:["Knowledge 단계 EEM 출시","Knowledge-level EEM launches"]}]},
+  {k:"2027-05", d:["2027.5–6","May–Jun 2027"], my:[{t:["졸업 시험","University finals"], n:["ACCA 일정 없음","Nothing ACCA-related"]}],
+    sys:[{sub:["6월","June"], t:["현행 Applied Skills·Strategic Professional 마지막 시험","Last sitting of current Applied Skills & Strategic Professional exams"]}]},
+  {k:"2027-07", d:["2027.7–8","Jul–Aug 2027"], my:[
+      {sub:["7월 중순","Mid-July"], t:["EPSM 마감","EPSM deadline"], n:["이때까지 완료하면 ESL(약 60시간) 전부 인정","Finish by then and ESL (about 60 hours) is fully credited"], kind:"key"},
+      {sub:["7–8월","Jul–Aug"], t:["최종 성적표로 9과목 면제 일괄 신청 후 수수료 결제","Apply for all 9 exemptions with the final transcript and pay the fee"], n:["9월 체계 전환 전에 처리","Do it before the September switchover"]}],
+    sys:[{sub:["7월","July"], t:["K1–K3 시험 시작 · Expertise/SP 단계 EEM 출시","K1–K3 exams begin · Expertise/SP-level EEMs launch"]},{sub:["7월 중순","Mid-July"], t:["현행 LW·EPSM 마감","Current LW & EPSM close"]}]},
+  {k:"2027-09", d:["2027.9","Sep 2027"], my:[{t:["면제·EPSM 이월 결과 확인","Check carried-over exemptions & EPSM"], n:["이 트래커와 ACCA Transition Tool에서 확인","Check in this tracker and the ACCA Transition Tool"]}],
+    sys:[{t:["신규 체계 시작: E1–E5, S1·S2, 선택과목 5종 첫 시험","New syllabus begins: first sittings of E1–E5, S1·S2 and the 5 options"], n:["기존 면제·합격·EPSM 자동 이월","Existing exemptions, passes and EPSM carry over automatically"], kind:"key"}]},
+  {k:"2027-10", d:["2027 하반기","Late 2027"], my:[{t:["첫 직장에서 PER 기록 시작","Start logging PER at first job"], n:["36개월, 시험과 병행","36 months, alongside exams"]}], sys:[]},
+  {k:"2027-12", d:["2027.12","Dec 2027"], my:[{t:["첫 고급과목 응시 (S1 또는 S2)","First Strategic exam (S1 or S2)"], n:["9월 첫 회차는 학습 자료가 부족하니 건너뛰기","Skip the first September sitting — study materials will be thin"]}], sys:[]},
   {k:"2028-01", d:"2028", my:[
-      {t:"나머지 S과목과 선택과목(SCF 등) 응시", n:"3과목 합격 후 PER을 마치면 회원 자격"},
-      {sub:"1월경 · 참고", t:"Advantage 면제 할인 마감 (졸업 후 6개월)", n:"8월에 신청했다면 해당 없음", kind:"ref"}], sys:[]},
+      {t:["나머지 S과목과 선택과목(SCF 등) 응시","Sit the remaining S exam and the option (e.g. SCF)"], n:["3과목 합격 후 PER을 마치면 회원 자격","Membership after passing all 3 and completing PER"]},
+      {sub:["1월경 · 참고","Around Jan · FYI"], t:["Advantage 면제 할인 마감 (졸업 후 6개월)","Advantage exemption discount ends (6 months after graduation)"], n:["8월에 신청했다면 해당 없음","Doesn't matter if you applied in August"], kind:"ref"}], sys:[]},
 ];
 
 // ---- state ----
@@ -372,7 +386,7 @@ function stats(view){
     if(it.mod) return;
     nExam++;
     if(s==="exempt") exExam++; else if(s==="passed") pExam++;
-    else { if(s==="studying") sExam++; remaining.push(it.slot!==undefined ? (view==="cur"?(state.options[it.slot]||"선택과목"):newOptObj().c) : it.c); }
+    else { if(s==="studying") sExam++; remaining.push(it.slot!==undefined ? (view==="cur"?(state.options[it.slot]||t("선택과목","Option")):newOptObj().c) : it.c); }
   }));
   return {total,done,exExam,pExam,sExam,nExam,remaining};
 }
@@ -381,13 +395,46 @@ function stats(view){
 const $ = id => document.getElementById(id);
 const pct = (a,b) => b?(a/b*100):0;
 
+const SYNC = {
+  loading:["진행 상황 불러오는 중…","Loading progress…"],
+  saved:["계정에 저장됨","Saved to account"],
+  failed:["저장 실패 · 이 브라우저에만 보관 중","Save failed · kept in this browser only"],
+  local:["이 기기에 자동 저장됨","Saved automatically on this device"],
+  live:["계정에 저장됨 · 모든 기기에 자동 반영","Saved to account · syncs to all devices"],
+  lost:["동기화 끊김 · 이 기기에만 저장 중","Sync lost · saving on this device only"],
+};
+let syncKey = "loading";
+function setSync(k){ syncKey=k; $("sync").textContent=L(SYNC[k]); }
+
+function renderStatic(){
+  document.documentElement.lang = lang;
+  document.title = t("나의 ACCA 로드맵","My ACCA Roadmap");
+  document.querySelectorAll("[data-lang]").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.lang===lang)));
+  $("s-eyebrow").textContent = t("ACCA Qualification · 개인 트래커","ACCA Qualification · Personal tracker");
+  $("s-title").textContent = t("나의 ACCA 로드맵","My ACCA Roadmap");
+  $("s-who").innerHTML = `<b>University of Exeter</b> · ${t("2027 졸업 예정","Graduating 2027")}<br>BSc/BA (Hons) Accounting and Finance`;
+  setSync(syncKey);
+  $("tabs").setAttribute("aria-label", t("과목 체계","Syllabus"));
+  $("tab-new").textContent = t("신규 체계 · 2027년 9월부터","New syllabus · from Sep 2027");
+  $("tab-cur").textContent = t("현행 체계 · 2027년 6월까지","Current syllabus · until Jun 2027");
+  $("s-map").textContent = t("현행 → 신규 대응표","Current → New mapping");
+  $("s-mapsub").textContent = t("합격·면제는 신청 없이 자동으로 이월됩니다","Passes and exemptions carry over automatically — no application needed");
+  $("s-maphead").innerHTML = `<tr><th>${t("현행","Current")}</th><th></th><th>${t("2027년 신규","New (2027)")}</th><th>${t("내 상태","My status")}</th></tr>`;
+  $("s-tl").textContent = t("주요 일정","Key dates");
+  $("s-footer").innerHTML = t(
+    `면제 근거: ACCA 면제 조회 (University of Exeter, 2027 졸업, BSc/BA (Hons) Accounting and Finance). PM·TX·FR·AA·FM은 해당 모듈을 이수하는 조건의 면제이며, 모두 충족하는 것으로 반영했습니다. 면제는 졸업 후 학위 증빙 제출과 면제 수수료 납부로 확정됩니다.<br>
+    신규 체계의 이월 결과는 ACCA Transition Tool 화면(10/14 완료) 기준입니다. 최신 내용은 <a href="https://www.accaglobal.com" target="_blank" rel="noopener">accaglobal.com</a>에서 확인하세요.`,
+    `Exemption basis: ACCA exemption lookup (University of Exeter, graduating 2027, BSc/BA (Hons) Accounting and Finance). PM, TX, FR, AA and FM are conditional on completing the listed modules; all are assumed met here. Exemptions are confirmed after graduation by submitting degree evidence and paying the exemption fee.<br>
+    New-syllabus carry-over follows the ACCA Transition Tool screen (completed 14 Oct). Check <a href="https://www.accaglobal.com" target="_blank" rel="noopener">accaglobal.com</a> for the latest.`);
+}
+
 function renderRing(){
   const s = stats(state.view), r=62, C=2*Math.PI*r, f=s.done/s.total;
   $("ring").innerHTML = `<svg viewBox="0 0 150 150" aria-hidden="true">
       <circle cx="75" cy="75" r="${r}" fill="none" stroke="var(--ring-track)" stroke-width="9"/>
       <circle cx="75" cy="75" r="${r}" fill="none" stroke="#ffffff" stroke-width="9" stroke-linecap="round"
         stroke-dasharray="${C*f} ${C}" style="transition:stroke-dasharray .5s ease"/></svg>
-    <div class="lbl" role="img" aria-label="전체 ${s.total}개 중 ${s.done}개 완료"><div class="n">${s.done}<small> / ${s.total}</small></div><div class="c">COMPLETE</div></div>`;
+    <div class="lbl" role="img" aria-label="${t(`전체 ${s.total}개 중 ${s.done}개 완료`,`${s.done} of ${s.total} complete`)}"><div class="n">${s.done}<small> / ${s.total}</small></div><div class="c">COMPLETE</div></div>`;
 }
 
 function renderProgress(){
@@ -395,42 +442,43 @@ function renderProgress(){
   const left = e.nExam-done-e.sExam;
   $("progress").innerHTML = `
     <div class="pcard">
-      <div class="row"><span class="eyebrow">시험 진행도 · ${v==="cur"?"현행":"신규"} ${e.nExam}과목</span></div>
+      <div class="row"><span class="eyebrow">${t(`시험 진행도 · ${v==="cur"?"현행":"신규"} ${e.nExam}과목`,`Exam progress · ${v==="cur"?"current":"new"} syllabus, ${e.nExam} exams`)}</span></div>
       <div class="big">${done}<small> / ${e.nExam}</small></div>
-      <div class="bar" role="img" aria-label="면제 ${e.exExam}, 합격 ${e.pExam}, 공부 중 ${e.sExam}">
+      <div class="bar" role="img" aria-label="${t(`면제 ${e.exExam}, 합격 ${e.pExam}, 공부 중 ${e.sExam}`,`Exempt ${e.exExam}, passed ${e.pExam}, studying ${e.sExam}`)}">
         <span style="width:${pct(e.exExam,e.nExam)}%;background:var(--muted)"></span>
         <span style="width:${pct(e.pExam,e.nExam)}%;background:var(--pass)"></span>
         <span style="width:${pct(e.sExam,e.nExam)}%;background:var(--study)"></span>
       </div>
       <div class="legend">
-        <span><i style="background:var(--muted)"></i>면제 ${e.exExam}</span>
-        <span><i style="background:var(--pass)"></i>합격 ${e.pExam}</span>
-        <span><i style="background:var(--study)"></i>공부 중 ${e.sExam}</span>
-        <span><i style="background:var(--line)"></i>남음 ${left}</span>
+        <span><i style="background:var(--muted)"></i>${t("면제","Exempt")} ${e.exExam}</span>
+        <span><i style="background:var(--pass)"></i>${t("합격","Passed")} ${e.pExam}</span>
+        <span><i style="background:var(--study)"></i>${t("공부 중","Studying")} ${e.sExam}</span>
+        <span><i style="background:var(--line)"></i>${t("남음","To do")} ${left}</span>
       </div>
-      <div class="next">${e.remaining.length?`남은 시험: <b>${e.remaining.join(" · ")}</b>`:"<b>모든 시험 완료</b>"}</div>
+      <div class="next">${e.remaining.length?`${t("남은 시험","Exams left")}: <b>${e.remaining.join(" · ")}</b>`:`<b>${t("모든 시험 완료","All exams complete")}</b>`}</div>
     </div>
     <div class="pcard">
-      <div class="row"><span class="eyebrow">윤리 진행도 · EPSM</span></div>
-      <div class="big">${u}<small> / ${UNITS.length} 유닛</small></div>
+      <div class="row"><span class="eyebrow">${t("윤리 진행도","Ethics progress")} · EPSM</span></div>
+      <div class="big">${u}<small> / ${UNITS.length} ${t("유닛","units")}</small></div>
       <div class="bar" role="img" aria-label="EPSM ${u}/${UNITS.length}">
         <span style="width:${pct(u,UNITS.length)}%;background:var(--pass)"></span>
       </div>
-      <div class="legend"><span>EPSM을 마치면 신규 체계의 Ethical, Sustainable Leadership 모듈로 인정 · 현행 EPSM은 2027년 7월 중순 마감</span></div>
+      <div class="legend"><span>${t("EPSM을 마치면 신규 체계의 Ethical, Sustainable Leadership 모듈로 인정 · 현행 EPSM은 2027년 7월 중순 마감","Completing EPSM credits the new syllabus's Ethical, Sustainable Leadership module · current EPSM closes mid-July 2027")}</span></div>
     </div>`;
 }
 
 const chip = s => ({
-  exempt:`<span class="chip done">✓ 면제 완료</span>`,
-  passed:`<span class="chip done">✓ 합격</span>`,
-  studying:`<span class="chip study">공부 중</span>`,
-  todo:`<span class="chip todo">남음</span>`,
+  exempt:`<span class="chip done">✓ ${t("면제 완료","Exempt")}</span>`,
+  passed:`<span class="chip done">✓ ${t("합격","Passed")}</span>`,
+  studying:`<span class="chip study">${t("공부 중","Studying")}</span>`,
+  todo:`<span class="chip todo">${t("남음","To do")}</span>`,
 }[s]);
+const creditedChip = () => `<span class="chip done">✓ ${t("인정 완료","Credited")}</span>`;
 function statusSelect(code, s){
-  return `<select id="sel-${code}" data-code="${code}" class="${s}" aria-label="${code} 상태">
-    <option value="todo"${s==="todo"?" selected":""}>남음</option>
-    <option value="studying"${s==="studying"?" selected":""}>공부 중</option>
-    <option value="passed"${s==="passed"?" selected":""}>합격</option></select>`;
+  return `<select id="sel-${code}" data-code="${code}" class="${s}" aria-label="${code} ${t("상태","status")}">
+    <option value="todo"${s==="todo"?" selected":""}>${t("남음","To do")}</option>
+    <option value="studying"${s==="studying"?" selected":""}>${t("공부 중","Studying")}</option>
+    <option value="passed"${s==="passed"?" selected":""}>${t("합격","Passed")}</option></select>`;
 }
 function card({tag, title, sub, s, control}){
   return `<div class="card ${isDone(s)?"done":""}">
@@ -441,36 +489,36 @@ function card({tag, title, sub, s, control}){
 
 function renderCurCard(it){
   const s=itemStatus("cur",it);
-  if(it.mod) return card({tag:"MODULE", title:`${it.mod} - ${it.n}`, sub:"아래 윤리 섹션에서 유닛별로 체크", s, control:epsmDone()?chip("passed"):`<span class="chip ${s==="studying"?"study":"todo"}">${state.units.length}/${UNITS.length} 유닛</span>`});
+  if(it.mod) return card({tag:"MODULE", title:`${it.mod} - ${it.n}`, sub:t("아래 윤리 섹션에서 유닛별로 체크","Tick off units in the Ethics section below"), s, control:epsmDone()?chip("passed"):`<span class="chip ${s==="studying"?"study":"todo"}">${state.units.length}/${UNITS.length} ${t("유닛","units")}</span>`});
   if(it.slot!==undefined){
     const c=state.options[it.slot], other=state.options[1-it.slot];
     const o=CUR_OPTS.find(x=>x.c===c);
-    const sel=`<label class="optsel">선택 ${it.slot+1}<select id="opt-cur-${it.slot}" data-optslot="${it.slot}" aria-label="현행 선택과목 ${it.slot+1}">
-      <option value="">고르기</option>${CUR_OPTS.filter(x=>x.c!==other).map(x=>`<option value="${x.c}"${x.c===c?" selected":""}>${x.c}</option>`).join("")}</select></label>`;
+    const sel=`<label class="optsel">${t("선택","Option")} ${it.slot+1}<select id="opt-cur-${it.slot}" data-optslot="${it.slot}" aria-label="${t("현행 선택과목","Current option")} ${it.slot+1}">
+      <option value="">${t("고르기","Choose")}</option>${CUR_OPTS.filter(x=>x.c!==other).map(x=>`<option value="${x.c}"${x.c===c?" selected":""}>${x.c}</option>`).join("")}</select></label>`;
     return `<div class="card ${isDone(s)?"done":""} ${c?"":"dim"}"><span class="tag">EXAM</span>
-      <div class="t">${o?`${o.c} - ${o.n}`:"선택과목 (4개 중 고르기)"}</div><div class="s">AFM · APM · ATX · AAA 중 2개</div>
+      <div class="t">${o?`${o.c} - ${o.n}`:t("선택과목 (4개 중 고르기)","Option (choose from 4)")}</div><div class="s">${t("AFM · APM · ATX · AAA 중 2개","Pick 2 of AFM · APM · ATX · AAA")}</div>
       <div class="foot">${sel}${c?statusSelect(c,s):""}</div></div>`;
   }
-  if(s==="exempt") return card({tag:"EXAM", title:`${it.c} - ${it.n}`, sub:it.cond?`조건부 면제: ${it.cond}`:"Exeter 학위로 면제", s});
+  if(s==="exempt") return card({tag:"EXAM", title:`${it.c} - ${it.n}`, sub:it.cond?`${t("조건부 면제","Conditional exemption")}: ${it.cond}`:t("Exeter 학위로 면제","Exempt via Exeter degree"), s});
   return card({tag:"EXAM", title:`${it.c} - ${it.n}`, s, control:statusSelect(it.c,s)});
 }
 
 function renderNewCard(it){
   const s=itemStatus("new",it);
   if(it.mod){
-    const ctrl = it.epsm && !epsmDone() ? `<span class="chip ${s==="studying"?"study":"todo"}">EPSM ${state.units.length}/${UNITS.length}</span>` : (isDone(s)?`<span class="chip done">✓ 인정 완료</span>`:chip(s));
-    return card({tag:"MODULE", title:`Essential Employability Module: ${it.n}`, sub:it.credit, s, control:ctrl});
+    const ctrl = it.epsm && !epsmDone() ? `<span class="chip ${s==="studying"?"study":"todo"}">EPSM ${state.units.length}/${UNITS.length}</span>` : (isDone(s)?creditedChip():chip(s));
+    return card({tag:"MODULE", title:`Essential Employability Module: ${it.n}`, sub:L(it.credit), s, control:ctrl});
   }
   if(it.slot!==undefined){
     const o=newOptObj(), k=newKey(o);
-    const sel=`<label class="optsel">옵션 변경<select id="opt-new" data-newopt="1" aria-label="신규 선택과목">${NEW_OPTS.map(x=>`<option value="${x.c}"${x.c===o.c?" selected":""}>${x.c}</option>`).join("")}</select></label>`;
+    const sel=`<label class="optsel">${t("옵션 변경","Change option")}<select id="opt-new" data-newopt="1" aria-label="${t("신규 선택과목","New option")}">${NEW_OPTS.map(x=>`<option value="${x.c}"${x.c===o.c?" selected":""}>${x.c}</option>`).join("")}</select></label>`;
     return `<div class="card ${isDone(s)?"done":""}"><span class="tag">EXAM</span>
-      <div class="t">${o.c} - ${o.n}</div><div class="s">${o.m?`현행 ${o.m} 합격 시 인정`:"신규 과목 · 현행 대응 없음"}</div>
+      <div class="t">${o.c} - ${o.n}</div><div class="s">${o.m?t(`현행 ${o.m} 합격 시 인정`,`Credited if you pass current ${o.m}`):t("신규 과목 · 현행 대응 없음","New exam · no current equivalent")}</div>
       <div class="foot">${sel}${statusSelect(k,s)}</div></div>`;
   }
   const src = allCur.find(x=>x.c===it.m);
-  const sub = `인정 근거: ${src.n} (${src.c})`;
-  if(s==="exempt") return card({tag:"EXAM", title:`${it.c} - ${it.n}`, sub, s, control:`<span class="chip done">✓ 인정 완료</span>`});
+  const sub = `${t("인정 근거","Credited from")}: ${src.n} (${src.c})`;
+  if(s==="exempt") return card({tag:"EXAM", title:`${it.c} - ${it.n}`, sub, s, control:creditedChip()});
   return card({tag:"EXAM", title:`${it.c} - ${it.n}`, sub, s, control:statusSelect(it.m,s)});
 }
 
@@ -479,8 +527,12 @@ function renderView(){
   $("tab-new").setAttribute("aria-selected", v==="new");
   $("tab-cur").setAttribute("aria-selected", v==="cur");
   let html = v==="new"
-    ? `<div class="note"><b>바뀌는 점.</b> 시험은 13과목에서 11과목으로 줄고, 시험과 필수 직무역량 모듈(EEM)을 합쳐 14개 항목이 됩니다. BT는 폐지되어 Responsible Business Management 모듈로 인정되고, Strategic Professional 선택과목은 1개만 고릅니다. 이미 받은 면제와 합격은 그대로 이어집니다.</div>`
-    : `<div class="note"><b>참고.</b> 면제는 2027년 졸업 후 확정되는데, 현행 Strategic Professional 시험은 2027년 6월이 마지막입니다. 그래서 남은 시험은 대부분 <b>신규 체계(선택 1과목)</b>로 보게 될 가능성이 높습니다.</div>`;
+    ? `<div class="note">${t(
+        `<b>바뀌는 점.</b> 시험은 13과목에서 11과목으로 줄고, 시험과 필수 직무역량 모듈(EEM)을 합쳐 14개 항목이 됩니다. BT는 폐지되어 Responsible Business Management 모듈로 인정되고, Strategic Professional 선택과목은 1개만 고릅니다. 이미 받은 면제와 합격은 그대로 이어집니다.`,
+        `<b>What changes.</b> Exams drop from 13 to 11, and with the mandatory Essential Employability Modules (EEMs) there are 14 items in total. BT is retired and credited as the Responsible Business Management module, and you pick only 1 Strategic Professional option. Exemptions and passes you already have carry over.`)}</div>`
+    : `<div class="note">${t(
+        `<b>참고.</b> 면제는 2027년 졸업 후 확정되는데, 현행 Strategic Professional 시험은 2027년 6월이 마지막입니다. 그래서 남은 시험은 대부분 <b>신규 체계(선택 1과목)</b>로 보게 될 가능성이 높습니다.`,
+        `<b>Note.</b> Exemptions are confirmed after graduating in 2027, but the last sitting of current Strategic Professional exams is June 2027. So most remaining exams will likely be taken under the <b>new syllabus (1 option)</b>.`)}</div>`;
   const levels = v==="new"?NEW:CUR;
   let cum=0, cumTotal=0;
   for(const l of levels){
@@ -490,12 +542,13 @@ function renderView(){
     let badge="";
     if(v==="new"){
       const got = cum===cumTotal;
-      badge = `<div class="award ${got?"got":""}"><div><div class="a1">${got?"취득 요건 충족":"완료하면 받을 수 있는 자격"}</div><div class="a2">${l.award}</div></div><div class="score">${cum}/${cumTotal}</div></div>`;
+      badge = `<div class="award ${got?"got":""}"><div><div class="a1">${got?t("취득 요건 충족","Requirements met"):t("완료하면 받을 수 있는 자격","Awarded on completion")}</div><div class="a2">${L(l.award)}</div></div><div class="score">${cum}/${cumTotal}</div></div>`;
     } else {
-      badge = `<div class="award ${d===l.items.length?"got":""}"><div><div class="a1">${l.items.length}개 항목</div><div class="a2">${d===l.items.length?"이 단계 완료":"진행 중"}</div></div><div class="score">${d}/${l.items.length}</div></div>`;
+      const all = d===l.items.length;
+      badge = `<div class="award ${all?"got":""}"><div><div class="a1">${t(`${l.items.length}개 항목`,`${l.items.length} items`)}</div><div class="a2">${all?t("이 단계 완료","Level complete"):t("진행 중","In progress")}</div></div><div class="score">${d}/${l.items.length}</div></div>`;
     }
     html += `<section class="panel" data-key="${v}-${l.lv}">
-      <div class="phead"><h2><span class="lv">${BRACKET[l.lv]}</span>${l.name}</h2>${badge}${l.sub?`<span class="sub">${l.sub}</span>`:""}</div>
+      <div class="phead"><h2><span class="lv">${L(BRACKET[l.lv])}</span>${l.name}</h2>${badge}${l.sub?`<span class="sub">${L(l.sub)}</span>`:""}</div>
       <div class="cards">${l.items.map(it=>v==="new"?renderNewCard(it):renderCurCard(it)).join("")}</div>
     </section>`;
   }
@@ -503,80 +556,82 @@ function renderView(){
 }
 
 function renderEthics(){
-  $("ethics").innerHTML = `<div class="phead"><h2><span class="lv">[윤리]</span>Ethics and Professional Skills Module</h2>
-      <div class="award ${epsmDone()?"got":""}"><div><div class="a1">신규 체계 인정 대상</div><div class="a2">Ethical, Sustainable Leadership</div></div><div class="score">${state.units.length}/${UNITS.length}</div></div></div>
+  $("ethics").innerHTML = `<div class="phead"><h2><span class="lv">${t("[윤리]","[Ethics]")}</span>Ethics and Professional Skills Module</h2>
+      <div class="award ${epsmDone()?"got":""}"><div><div class="a1">${t("신규 체계 인정 대상","Credited in new syllabus as")}</div><div class="a2">Ethical, Sustainable Leadership</div></div><div class="score">${state.units.length}/${UNITS.length}</div></div></div>
     <div class="units">${UNITS.map((u,i)=>{const d=state.units.includes(i);return `<label class="unit ${d?"done":""}" for="unit-${i}"><input type="checkbox" id="unit-${i}" data-unit="${i}"${d?" checked":""}><span class="un">${String(i+1).padStart(2,"0")}</span><span class="ut">${u}</span></label>`}).join("")}</div>`;
 }
 
 function renderMap(){
-  const lab = s => ({exempt:"면제",passed:"합격",studying:"공부 중",todo:"남음"}[s]);
+  const lab = s => ({exempt:t("면제","Exempt"),passed:t("합격","Passed"),studying:t("공부 중","Studying"),todo:t("남음","To do")}[s]);
   const P = c => [...allCur, ...CUR_OPTS].find(x=>x.c===c);
   const row = (from, to, status) => `<tr><td>${from}</td><td class="arrow">→</td><td>${to}</td><td>${status}</td></tr>`;
   const paper = c => { const p=P(c); return `<b>${p.c}</b> ${p.n}`; };
   const target = c => { const n=NEW.flatMap(l=>l.items).find(x=>x.m===c && !x.mod) || NEW_OPTS.find(x=>x.m===c); return `<b>${n.c}</b> ${n.n}`; };
   const groups = [
-    ["[초급]","Knowledge", [
+    [BRACKET[0],"Knowledge", [
       row(paper("FA"), target("FA"), lab(curStatus("FA"))),
       row(paper("MA"), target("MA"), lab(curStatus("MA"))),
-      row(paper("LW")+` <span class="tsub">현행에서는 Applied Skills</span>`, target("LW"), lab(curStatus("LW"))),
-      row(paper("BT")+` <span class="tsub">폐지</span>`, "EEM Responsible Business Management", lab(curStatus("BT"))),
+      row(paper("LW")+` <span class="tsub">${t("현행에서는 Applied Skills","Applied Skills in current syllabus")}</span>`, target("LW"), lab(curStatus("LW"))),
+      row(paper("BT")+` <span class="tsub">${t("폐지","Retired")}</span>`, "EEM Responsible Business Management", lab(curStatus("BT"))),
     ]],
-    ["[중급]","Expertise", [
+    [BRACKET[1],"Expertise", [
       ...["TX","FR","AA","FM","PM"].map(c=>row(paper(c), target(c), lab(curStatus(c)))),
-      row("Applied Skills 전체", "EEM Digital Tech and Innovation", "면제"),
+      row(t("Applied Skills 전체","All Applied Skills"), "EEM Digital Tech and Innovation", lab("exempt")),
     ]],
-    ["[고급]","Strategic Professional", [
+    [BRACKET[2],"Strategic Professional", [
       ...["SBR","SBL","AFM","APM","ATX","AAA"].map(c=>row(paper(c), target(c), lab(curStatus(c)))),
-      row("—", `<b>SDS</b> Data Science Professional <span class="tsub">신규 선택과목</span>`, "—"),
+      row("—", `<b>SDS</b> Data Science Professional <span class="tsub">${t("신규 선택과목","New option")}</span>`, "—"),
     ]],
-    ["[윤리]","Ethics", [
-      row(`<b>EPSM</b> Ethics and Professional Skills Module`, "EEM Ethical, Sustainable Leadership", `${state.units.length}/${UNITS.length} 유닛`),
+    [["[윤리]","[Ethics]"],"Ethics", [
+      row(`<b>EPSM</b> Ethics and Professional Skills Module`, "EEM Ethical, Sustainable Leadership", `${state.units.length}/${UNITS.length} ${t("유닛","units")}`),
     ]],
   ];
-  $("maptable").innerHTML = groups.map(([b,n,rows])=>`<tr class="grp"><td colspan="4"><span class="lv">${b}</span> ${n}</td></tr>${rows.join("")}`).join("");
+  $("maptable").innerHTML = groups.map(([b,n,rows])=>`<tr class="grp"><td colspan="4"><span class="lv">${L(b)}</span> ${n}</td></tr>${rows.join("")}`).join("");
 }
 
 function renderTimeline(){
   const ym = TODAY.getFullYear()+"-"+String(TODAY.getMonth()+1).padStart(2,"0");
-  $("today").textContent = "오늘 " + TODAY.toLocaleDateString("ko-KR");
-  const item = x => `<div class="ti ${x.kind||""}">${x.sub?`<span class="sub2">${x.sub}</span>`:""}<span class="tt">${x.t}</span>${x.n?`<span class="tn">${x.n}</span>`:""}</div>`;
+  const today = fmtDate(TODAY), todayLbl = t("오늘","Today");
+  $("today").textContent = todayLbl + " " + today;
+  const item = x => `<div class="ti ${x.kind||""}">${x.sub?`<span class="sub2">${L(x.sub)}</span>`:""}<span class="tt">${L(x.t)}</span>${x.n?`<span class="tn">${L(x.n)}</span>`:""}</div>`;
   const cell = (list, who) => `<div class="tc" data-who="${who}">${list.length?list.map(item).join(""):'<span class="empty">—</span>'}</div>`;
-  const rows = T_ROWS.map(r=>({...r}));
-  let html = `<div class="tr thead"><span></span><h3><span class="lv">[할 일]</span>내가 해야 할 것</h3><h3><span class="lv">[ACCA]</span>체계 변경</h3></div>`;
+  const todo = t("할 일","To do");
+  const nowRow = `<div class="tr now"><span class="d">${todayLbl}</span><b>${today}</b></div>`;
+  let html = `<div class="tr thead"><span></span><h3><span class="lv">[${todo}]</span>${t("내가 해야 할 것","What I need to do")}</h3><h3><span class="lv">[ACCA]</span>${t("체계 변경","Syllabus changes")}</h3></div>`;
   let placed = false;
-  for(const r of rows){
-    if(!placed && r.k >= ym){ html += `<div class="tr now"><span class="d">오늘</span><b>${TODAY.toLocaleDateString("ko-KR")}</b></div>`; placed = true; }
-    html += `<div class="tr ${r.k<ym?"past":""}"><span class="d">${r.d}</span>${cell(r.my,"할 일")}${cell(r.sys,"ACCA")}</div>`;
+  for(const r of T_ROWS){
+    if(!placed && r.k >= ym){ html += nowRow; placed = true; }
+    html += `<div class="tr ${r.k<ym?"past":""}"><span class="d">${L(r.d)}</span>${cell(r.my,todo)}${cell(r.sys,"ACCA")}</div>`;
   }
-  if(!placed) html += `<div class="tr now"><span class="d">오늘</span><b>${TODAY.toLocaleDateString("ko-KR")}</b></div>`;
+  if(!placed) html += nowRow;
   $("timeline").innerHTML = html;
 }
 
 const ADV_STEPS = [
-  ["ACCA Advantage 가입","2026년 10–11월 대학 웨비나 · 공지 없으면 튜터에게 코드 요청"],
-  ["Exeter 졸업","2027년 · 학위 증명서 발급"],
-  ["최종 성적표로 면제 9과목 일괄 신청","2027년 7–8월, 9월 체계 전환 전 · 졸업 후 6개월 안이면 할인가"],
-  ["ACCA 학생 등록 및 면제 비용 납부","등록비 £40 + 면제 £495 = £535"],
+  [["ACCA Advantage 가입","Join ACCA Advantage"],["2026년 10–11월 대학 웨비나 · 공지 없으면 튜터에게 코드 요청","University webinar, Oct–Nov 2026 · if there's no notice, ask your tutor for the code"]],
+  [["Exeter 졸업","Graduate from Exeter"],["2027년 · 학위 증명서 발급","2027 · degree certificate issued"]],
+  [["최종 성적표로 면제 9과목 일괄 신청","Apply for all 9 exemptions with the final transcript"],["2027년 7–8월, 9월 체계 전환 전 · 졸업 후 6개월 안이면 할인가","Jul–Aug 2027, before the September switchover · discounted within 6 months of graduation"]],
+  [["ACCA 학생 등록 및 면제 비용 납부","Register as an ACCA student and pay exemption fees"],["등록비 £40 + 면제 £495 = £535","Registration £40 + exemptions £495 = £535"]],
 ];
 const ADV_ROWS = [
-  ["면제 과목 수 (최대)","9","9"],
-  ["면제 9과목 비용<span class='tsub'>졸업 후 6개월 동안 할인</span>","£1,032","£495"],
-  ["연회비","£244","£0"],
-  ["등록비","£89","£40"],
+  [["면제 과목 수 (최대)","Exemptions (max)"],"9","9"],
+  [["면제 9과목 비용<span class='tsub'>졸업 후 6개월 동안 할인</span>","Fee for 9 exemptions<span class='tsub'>Discounted for 6 months after graduation</span>"],"£1,032","£495"],
+  [["연회비","Annual subscription"],"£244","£0"],
+  [["등록비","Registration fee"],"£89","£40"],
 ];
 function renderAdvantage(){
   const n=state.adv.length, all=n===ADV_STEPS.length;
-  $("advantage").innerHTML = `<div class="phead"><h2><span class="lv">[혜택]</span>ACCA Advantage</h2>
-      <div class="award ${all?"got":""}"><div><div class="a1">${all?"모든 단계 완료":"다음 할 일"}</div><div class="a2">${all?"Advantage 혜택 적용 완료":ADV_STEPS.find((_,i)=>!state.adv.includes(i))[0]}</div></div><div class="score">${n}/${ADV_STEPS.length}</div></div></div>
+  $("advantage").innerHTML = `<div class="phead"><h2><span class="lv">${t("[혜택]","[Benefit]")}</span>ACCA Advantage</h2>
+      <div class="award ${all?"got":""}"><div><div class="a1">${all?t("모든 단계 완료","All steps complete"):t("다음 할 일","Next step")}</div><div class="a2">${all?t("Advantage 혜택 적용 완료","Advantage benefits applied"):L(ADV_STEPS.find((_,i)=>!state.adv.includes(i))[0])}</div></div><div class="score">${n}/${ADV_STEPS.length}</div></div></div>
     <div class="adv">
       <div class="tablewrap"><table>
-        <thead><tr><th></th><th class="num">일반 학생</th><th class="num hl">Advantage 학생</th></tr></thead>
-        <tbody>${ADV_ROWS.map(r=>`<tr><td>${r[0]}</td><td class="num">${r[1]}</td><td class="num hl">${r[2]}</td></tr>`).join("")}
-        <tr class="total"><td>합계</td><td class="num">£1,365</td><td class="num hl">£535</td></tr></tbody>
+        <thead><tr><th></th><th class="num">${t("일반 학생","Standard student")}</th><th class="num hl">${t("Advantage 학생","Advantage student")}</th></tr></thead>
+        <tbody>${ADV_ROWS.map(r=>`<tr><td>${L(r[0])}</td><td class="num">${r[1]}</td><td class="num hl">${r[2]}</td></tr>`).join("")}
+        <tr class="total"><td>${t("합계","Total")}</td><td class="num">£1,365</td><td class="num hl">£535</td></tr></tbody>
       </table></div>
-      <div class="save"><span class="s1">Advantage로 면제 9과목을 신청하면</span><span class="amt">£830 절약</span><span class="s1">면제 할인은 졸업 후 6개월까지만 적용됩니다.</span></div>
+      <div class="save"><span class="s1">${t("Advantage로 면제 9과목을 신청하면","Applying for 9 exemptions via Advantage")}</span><span class="amt">${t("£830 절약","Save £830")}</span><span class="s1">${t("면제 할인은 졸업 후 6개월까지만 적용됩니다.","The exemption discount only applies for 6 months after graduation.")}</span></div>
     </div>
-    <div class="steps">${ADV_STEPS.map((x,i)=>{const d=state.adv.includes(i);return `<label class="unit ${d?"done":""}" for="adv-${i}"><input type="checkbox" id="adv-${i}" data-adv="${i}"${d?" checked":""}><span class="un">${i+1}</span><span><span class="ut">${x[0]}</span><span class="tsub" style="display:block;font-size:12px;color:var(--muted)">${x[1]}</span></span></label>`}).join("")}</div>`;
+    <div class="steps">${ADV_STEPS.map((x,i)=>{const d=state.adv.includes(i);return `<label class="unit ${d?"done":""}" for="adv-${i}"><input type="checkbox" id="adv-${i}" data-adv="${i}"${d?" checked":""}><span class="un">${i+1}</span><span><span class="ut">${L(x[0])}</span><span class="tsub" style="display:block;font-size:12px;color:var(--muted)">${L(x[1])}</span></span></label>`}).join("")}</div>`;
 }
 
 let folded = new Set();
@@ -596,11 +651,11 @@ function decoratePanels(){
     const c=folded.has(k);
     p.classList.toggle("collapsed", c);
     b.setAttribute("aria-expanded", String(!c));
-    b.setAttribute("aria-label", (c?"펼치기: ":"접기: ")+head.querySelector("h2").textContent);
+    b.setAttribute("aria-label", (c?t("펼치기: ","Expand: "):t("접기: ","Collapse: "))+head.querySelector("h2").textContent);
   });
 }
 
-function renderAll(){renderRing();renderProgress();renderAdvantage();renderView();renderEthics();renderMap();renderTimeline();decoratePanels()}
+function renderAll(){renderStatic();renderRing();renderProgress();renderAdvantage();renderView();renderEthics();renderMap();renderTimeline();decoratePanels()}
 
 // ---- events ----
 document.addEventListener("change", e=>{
@@ -618,6 +673,12 @@ document.addEventListener("change", e=>{
   const id=t.id; save(); renderAll(); document.getElementById(id)?.focus();
 });
 document.addEventListener("click", e=>{
+  const lb=e.target.closest("[data-lang]");
+  if(lb){
+    lang=lb.dataset.lang;
+    try{ localStorage.setItem("acca-lang", lang); }catch(err){}
+    renderAll(); return;
+  }
   const head=e.target.closest(".panel[data-key] > .phead:first-child");
   if(head && !e.target.closest("select,input,label,a")){
     const k=head.parentElement.dataset.key;
@@ -638,8 +699,8 @@ function save(){
   clearTimeout(timer);
   timer=setTimeout(async()=>{
     timer=null;
-    try{ await ref.set({papers:state.papers, options:state.options, newOpt:state.newOpt, units:state.units, adv:state.adv, updatedAt:Date.now()}); $("sync").textContent="계정에 저장됨"; }
-    catch(err){ $("sync").textContent="저장 실패 · 이 브라우저에만 보관 중"; }
+    try{ await ref.set({papers:state.papers, options:state.options, newOpt:state.newOpt, units:state.units, adv:state.adv, updatedAt:Date.now()}); setSync("saved"); }
+    catch(err){ setSync("failed"); }
   },500);
 }
 renderAll();
@@ -648,7 +709,7 @@ renderAll();
     const db = await window.claude?.use?.("db");
     const user = await window.claude?.use?.("user");
     const id = user ? await user.id() : null;
-    if(!db || !id){ $("sync").textContent="이 기기에 자동 저장됨"; return; }
+    if(!db || !id){ setSync("local"); return; }
     ref = db.doc(`data/users/${id}/acca`);
     // live: a change on any device shows up on every open device
     let first=true;
@@ -660,8 +721,8 @@ renderAll();
         merge({papers:d.papers||{}, options:d.options||state.options, newOpt:d.newOpt||state.newOpt, units:d.units||[], adv:d.adv||[]});
         lsSet(); renderAll(); if(focus) document.getElementById(focus)?.focus();
       }
-      $("sync").textContent="계정에 저장됨 · 모든 기기에 자동 반영";
-    }, ()=>{ $("sync").textContent="동기화 끊김 · 이 기기에만 저장 중"; });
-  }catch(err){ $("sync").textContent="이 기기에 자동 저장됨"; }
+      setSync("live");
+    }, ()=>{ setSync("lost"); });
+  }catch(err){ setSync("local"); }
 })();
 </script>
